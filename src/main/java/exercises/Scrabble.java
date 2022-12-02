@@ -1,6 +1,7 @@
 package exercises;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Stream;
 
@@ -102,9 +103,7 @@ public class Scrabble {
         int result = first.getResult() + second.getResult();
         return result;
     }
-    /**
-     * TODO
-     * */
+
     public static int calValForkJoinMultiple(ArrayList<String> words, int threadsnum ){
         int result = 0;
         calValForkJoin[] threadsArray =new calValForkJoin[threadsnum];
@@ -125,10 +124,53 @@ public class Scrabble {
         return result;
     }
 
-    public static int numberOfStudentFailStream(ArrayList<String> words){
+    public static int scrabbleStream(ArrayList<String> words){
         int value = Stream.of(words).parallel().mapToInt(i -> calStrValue(String.valueOf(i))).sum();
         return value;
     }
 
+    private static class scrabbleThreadClass extends Thread{
+        private int result;
+        private final ArrayList<String> input;
 
+        public scrabbleThreadClass(ArrayList<String> input) {
+            this.result = 0;
+            this.input =input;
+        }
+        public void run(){
+            for(int i = 0; i<input.size(); i++){
+                result = result+ calStrValue(input.get(i));
+            }
+        }
+        public int getResult(){
+            return this.result;
+        }
+    }
+    public static int scrabbleThread (ArrayList<String> words, int threadsnum) throws InterruptedException {
+        int sum = 0;
+        ArrayList<String[]> chunks=splitChunks(words,threadsnum);
+        ArrayList<scrabbleThreadClass> threadList=new ArrayList<scrabbleThreadClass>();
+        for (int i =0; i<chunks.size();i++){
+            scrabbleThreadClass thread = new scrabbleThreadClass(new ArrayList<String>(Arrays.asList(chunks.get(i))));
+            threadList.add(thread);
+            thread.start();
+        }
+
+        for (scrabbleThreadClass t :threadList){
+            t.join();
+            int result = t.getResult();
+            sum+=result;
+        }
+        return sum;
+    }
+
+    public static ArrayList<String[]> splitChunks(ArrayList<String> bigList, int n){
+        ArrayList<String[]> chunks = new ArrayList<String[]>();
+
+        for (int i = 0; i < bigList.size(); i += n) {
+            String[] chunk = (String[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();
+            chunks.add(chunk);
+        }
+        return chunks;
+    }
     }

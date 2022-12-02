@@ -1,6 +1,8 @@
 package exercises;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Stream;
 
@@ -63,5 +65,46 @@ public class StudentSelection {
             return result += threadsArray[i].getCount();
         }
         return result;
+    }
+    public static class studentSelectionThreadClass extends Thread{
+        private int result;
+        private final Student[]  input;
+
+        public studentSelectionThreadClass(Student[] input) {
+            this.result = 0;
+            this.input =input;
+        }
+        public void run(){
+            result=numberOfStudentFailSeq(input);
+        }
+        public int getResult(){
+            return this.result;
+        }
+    }
+    public static int scrabbleThread (Student[] students, int threadsnum) throws InterruptedException {
+        int sum = 0;
+        ArrayList<Student[]> chunks=splitChunks(Arrays.asList((students)),threadsnum);
+        ArrayList<studentSelectionThreadClass> threadList=new ArrayList<studentSelectionThreadClass>();
+        for (int i =0; i<chunks.size();i++){
+            studentSelectionThreadClass thread = new studentSelectionThreadClass(chunks.get(i));
+            threadList.add(thread);
+            thread.start();
+        }
+        for (studentSelectionThreadClass t :threadList){
+            t.join();
+            int result = t.getResult();
+            sum+=result;
+        }
+        return sum;
+    }
+
+    public static ArrayList<Student[]> splitChunks(List<Student> bigList, int n){
+        ArrayList<Student[]> chunks = new ArrayList<Student[]>();
+
+        for (int i = 0; i < bigList.size(); i += n) {
+            Student[] chunk = (Student[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();
+            chunks.add(chunk);
+        }
+        return chunks;
     }
 }
