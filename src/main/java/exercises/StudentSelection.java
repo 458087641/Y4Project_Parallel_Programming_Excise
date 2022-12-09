@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
 public class StudentSelection {
@@ -23,28 +24,27 @@ public class StudentSelection {
         return count;
     }
 
-    private static class numberOfStudentFailFork extends RecursiveAction {
+    private static class numberOfStudentFailFork extends RecursiveTask<Integer> {
         private final int startIndex;
         private final int endIndex;
         private final Student[] input;
-        private int count;
+
         numberOfStudentFailFork(final int startIndex, final int endIndex, final Student[] studentArray) {
             this.startIndex = startIndex;
             this.endIndex = endIndex;
             this.input = studentArray;
         }
         @Override
-        protected void compute() {
-            count = 0;
+        protected Integer compute() {
+            Integer count = 0;
             for(int i = startIndex; i<endIndex; i++){
                 if (input[i].getGrade()<40){
                     count +=1;
                 }
             }
-        }
-        public int getCount() {
             return count;
         }
+
     }
 
     public static int numberOfStudentFailForkMultiple(Student[] studentArray, int threadsnum ){
@@ -56,13 +56,10 @@ public class StudentSelection {
         for (int i=0; i<threadsnum-1; i++){
             threadsArray[i].fork();
         }
-        threadsArray[threadsnum-1].compute();
+        result+=threadsArray[threadsnum-1].compute();
 
         for(int i=0; i<threadsnum-1; i++){
-            threadsArray[i].join();
-        }
-        for(int i=0; i<threadsnum; i++){
-            return result += threadsArray[i].getCount();
+            result+=threadsArray[i].join();
         }
         return result;
     }
@@ -81,7 +78,7 @@ public class StudentSelection {
             return this.result;
         }
     }
-    public static int scrabbleThread (Student[] students, int threadsnum) throws InterruptedException {
+    public static int studentSelectionThread (Student[] students, int threadsnum) throws InterruptedException {
         int sum = 0;
         ArrayList<Student[]> chunks=splitChunks(Arrays.asList((students)),threadsnum);
         ArrayList<studentSelectionThreadClass> threadList=new ArrayList<studentSelectionThreadClass>();

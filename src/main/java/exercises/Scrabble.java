@@ -3,6 +3,7 @@ package exercises;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
 
 import static edu.rice.pcdp.PCDP.async;
@@ -39,7 +40,6 @@ public class Scrabble {
     }
 
     public static int calValSeq(ArrayList<String> words){
-        long startTime = System.nanoTime();
         int sum1 = 0;
         int sum2 = 0;
         for (int i=0; i< words.size()/2;i++){
@@ -48,8 +48,7 @@ public class Scrabble {
         for (int i = words.size()/2; i< words.size(); i++){
             sum2+=calStrValue(words.get(i));
         }
-        long endTime = System.nanoTime();
-        System.out.println("run time of sequential program is "+(endTime-startTime)+"; result is "+(sum1+sum2));
+
         return sum1+sum2;
     }
 
@@ -72,40 +71,40 @@ public class Scrabble {
         return sum1+sum2;
     }
 
-    private static class calValForkJoin extends RecursiveAction {
+    private static class calValForkJoin extends RecursiveTask<Integer> {
         private final int startIndex;
         private final int endIndex;
         private final ArrayList<String> input;
-        private int result;
         calValForkJoin(final int startIndex, final int endIndex, final ArrayList<String> input) {
             this.startIndex = startIndex;
             this.endIndex = endIndex;
             this.input = input;
         }
         @Override
-        protected void compute() {
-            result = 0;
+        protected Integer compute() {
+            Integer result = 0;
             for(int i = startIndex; i<endIndex; i++){
                 result = result+ calStrValue(input.get(i));
             }
-        }
-        public int getResult() {
             return result;
         }
+
     }
 
     public static int calValForkJoin2Threads(ArrayList<String> words){
+
         calValForkJoin first =new calValForkJoin(0,words.size()/2,words);
         calValForkJoin second =new calValForkJoin(words.size()/2,words.size(),words);
         first.fork();
-        second.compute();
-        first.join();
-        int result = first.getResult() + second.getResult();
+        Integer result1 = second.compute();
+        Integer result2 =first.join();
+        int result = result1+result2;
+
         return result;
     }
 
     public static int calValForkJoinMultiple(ArrayList<String> words, int threadsnum ){
-        int result = 0;
+        Integer result = 0;
         calValForkJoin[] threadsArray =new calValForkJoin[threadsnum];
         for(int i =0; i<threadsnum; i++){
             threadsArray[i]=new calValForkJoin(i*words.size()/threadsnum,(i+1)*words.size()/threadsnum,words);
@@ -113,14 +112,12 @@ public class Scrabble {
         for (int i=0; i<threadsnum-1; i++){
             threadsArray[i].fork();
         }
-        threadsArray[threadsnum-1].compute();
+        result+=threadsArray[threadsnum-1].compute();
 
         for(int i=0; i<threadsnum-1; i++){
-            threadsArray[i].join();
+            result+= threadsArray[i].join();
         }
-        for(int i=0; i<threadsnum; i++){
-            return result += threadsArray[i].getResult();
-        }
+
         return result;
     }
 
@@ -168,7 +165,7 @@ public class Scrabble {
         ArrayList<String[]> chunks = new ArrayList<String[]>();
 
         for (int i = 0; i < bigList.size(); i += n) {
-            String[] chunk = (String[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();
+            String[] chunk = bigList.subList(i, Math.min(bigList.size(), i + n)).toArray(new String[0]);
             chunks.add(chunk);
         }
         return chunks;

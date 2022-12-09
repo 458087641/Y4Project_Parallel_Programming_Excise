@@ -169,7 +169,7 @@ public class MaxMinAvg {
     }
 
     public static ArrayList<Integer[]> splitChunks(ArrayList<Integer> bigList, int n){
-        ArrayList<Integer[]> chunks = new ArrayList<Integer[]>();
+        ArrayList<Integer[]> chunks = new ArrayList<>();
 
         for (int i = 0; i < bigList.size(); i += n) {
             Integer[] chunk = (Integer[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();

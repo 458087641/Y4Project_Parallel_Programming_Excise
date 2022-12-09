@@ -110,7 +110,6 @@ public class MergeSort {
         }
 
         private void swap(List<Integer> left, int leftIndex, List<Integer> right, int rightIndex) {
-            //N leftElement = left.get(leftIndex);
             left.set(leftIndex, right.set(rightIndex, left.get(leftIndex)));
         }
 
