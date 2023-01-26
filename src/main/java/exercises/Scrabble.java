@@ -5,7 +5,8 @@ import java.util.Arrays;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
 import java.util.stream.Stream;
-
+import static exercises.Helper.getChunkEndExclusive;
+import static exercises.Helper.getChunkStartInclusive;
 import static edu.rice.pcdp.PCDP.async;
 import static edu.rice.pcdp.PCDP.finish;
 
@@ -71,7 +72,7 @@ public class Scrabble {
         return sum1+sum2;
     }
 
-    private static class calValForkJoin extends RecursiveTask<Integer> {
+    public static class calValForkJoin extends RecursiveTask<Integer> {
         private final int startIndex;
         private final int endIndex;
         private final ArrayList<String> input;
@@ -91,7 +92,7 @@ public class Scrabble {
 
     }
 
-    public static int calValForkJoin2Threads(ArrayList<String> words){
+    public static int scrabbleForkJoin2Threads(ArrayList<String> words){
 
         calValForkJoin first =new calValForkJoin(0,words.size()/2,words);
         calValForkJoin second =new calValForkJoin(words.size()/2,words.size(),words);
@@ -103,11 +104,11 @@ public class Scrabble {
         return result;
     }
 
-    public static int calValForkJoinMultiple(ArrayList<String> words, int threadsnum ){
+    public static int scrabbleForkJoinMultiple(ArrayList<String> words, int threadsnum ){
         Integer result = 0;
         calValForkJoin[] threadsArray =new calValForkJoin[threadsnum];
         for(int i =0; i<threadsnum; i++){
-            threadsArray[i]=new calValForkJoin(i*words.size()/threadsnum,(i+1)*words.size()/threadsnum,words);
+            threadsArray[i]=new calValForkJoin(getChunkStartInclusive(i, threadsnum,words.size()),getChunkEndExclusive(i, threadsnum,words.size()),words);
         }
         for (int i=0; i<threadsnum-1; i++){
             threadsArray[i].fork();
