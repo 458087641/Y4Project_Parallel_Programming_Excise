@@ -54,7 +54,6 @@ public class Scrabble {
     }
 
     public static int calValParAyc(ArrayList<String> words){
-        long startTime = System.nanoTime();
         sum1 = 0;
         sum2 = 0;
         finish(()-> {
@@ -67,8 +66,6 @@ public class Scrabble {
                 sum2 += calStrValue(words.get(i));
             }
             });
-        long endTime = System.nanoTime();
-        System.out.println("run time of parallel program is "+(endTime-startTime)+"; result is "+(sum1+sum2));
         return sum1+sum2;
     }
 
@@ -122,22 +119,21 @@ public class Scrabble {
         return result;
     }
 
-    public static int scrabbleStream(ArrayList<String> words){
-        int value = Stream.of(words).parallel().mapToInt(i -> calStrValue(String.valueOf(i))).sum();
-        return value;
-    }
-
     private static class scrabbleThreadClass extends Thread{
         private int result;
         private final ArrayList<String> input;
-
-        public scrabbleThreadClass(ArrayList<String> input) {
+        private final int startIndex;
+        private final int endIndex;
+        public scrabbleThreadClass( int startIndex, int endIndex,ArrayList<String> input) {
             this.result = 0;
             this.input =input;
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
         }
         public void run(){
-            for(int i = 0; i<input.size(); i++){
-                result = result+ calStrValue(input.get(i));
+            this.result=0;
+            for(int i = startIndex; i<endIndex; i++){
+                this.result = result+ calStrValue(input.get(i));
             }
         }
         public int getResult(){
@@ -146,10 +142,9 @@ public class Scrabble {
     }
     public static int scrabbleThread (ArrayList<String> words, int threadsnum) throws InterruptedException {
         int sum = 0;
-        ArrayList<String[]> chunks=splitChunks(words,threadsnum);
         ArrayList<scrabbleThreadClass> threadList=new ArrayList<scrabbleThreadClass>();
-        for (int i =0; i<chunks.size();i++){
-            scrabbleThreadClass thread = new scrabbleThreadClass(new ArrayList<String>(Arrays.asList(chunks.get(i))));
+        for (int i =0; i<threadsnum;i++){
+            scrabbleThreadClass thread = new scrabbleThreadClass(getChunkStartInclusive(i, threadsnum,words.size()),getChunkEndExclusive(i, threadsnum,words.size()),words);
             threadList.add(thread);
             thread.start();
         }
@@ -162,13 +157,5 @@ public class Scrabble {
         return sum;
     }
 
-    public static ArrayList<String[]> splitChunks(ArrayList<String> bigList, int n){
-        ArrayList<String[]> chunks = new ArrayList<String[]>();
+    }
 
-        for (int i = 0; i < bigList.size(); i += n) {
-            String[] chunk = bigList.subList(i, Math.min(bigList.size(), i + n)).toArray(new String[0]);
-            chunks.add(chunk);
-        }
-        return chunks;
-    }
-    }

@@ -42,15 +42,23 @@ public class EnergyFee {
     }
     public static class calFeeDataParallelThread extends Thread{
         private final ArrayList<EnergyAccount> accountList;
+        private final int startIndex;
+        private final int endIndex;
         private Map<String, Double> resultMap=new HashMap<String, Double>();
 
-        public calFeeDataParallelThread(java.util.ArrayList<EnergyAccount> accountList) {
+        public calFeeDataParallelThread(ArrayList<EnergyAccount> accountList, int startIndex, int endIndex ) {
             this.accountList = accountList;
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
         }
         public void run(){
-            resultMap=calFeeSeq(accountList);
+            for(int i = startIndex; i<endIndex; i++) {
+
+                resultMap = calFeeSeq(accountList);
+            }
         }
     }
+
     public static class calFeeTaskParallelThread extends Thread{
         private final ArrayList<EnergyAccount> accountList;
         private Map<String, Double> resultMap=new HashMap<String, Double>();

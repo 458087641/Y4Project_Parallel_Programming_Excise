@@ -1,107 +1,173 @@
 package exercises;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static exercises.Helper.getChunkEndExclusive;
+import static exercises.Helper.getChunkStartInclusive;
 public class StudentSelection {
 
-    public static int numberOfStudentFailSeq(Student[] studentArray){
-        int count = 0;
-        for (Student s : studentArray){
-            if (s.getGrade() <40){
-                count +=1;
+
+    public static String mostCommonFirstNameSeq(Student[] studentArray){
+        Map<String, Integer> nameNums = new HashMap<String, Integer>();
+
+        for (Student s : studentArray) {
+            if (nameNums.containsKey(s.getFirstName())) {
+                nameNums.put(s.getFirstName(),
+                        nameNums.get(s.getFirstName()) + 1);
+            } else {
+                nameNums.put(s.getFirstName(), 1);
             }
         }
-        return count;
+
+        String mostCommon = null;
+        int mostCommonCount = -1;
+        for (Map.Entry<String, Integer> entry : nameNums.entrySet()) {
+            if (mostCommon == null || entry.getValue() > mostCommonCount) {
+                mostCommon = entry.getKey();
+                mostCommonCount = entry.getValue();
+            }
+        }
+
+        return mostCommon;
+    }
+    public String mostCommonFirstNameOfStudentsParallelStream(
+            final Student[] studentArray) {
+
+        String name = Stream.of(studentArray).parallel().collect(Collectors.groupingBy(Student::getFirstName)).values().stream()
+                .sorted((n1, n2)->n2.size()-n1.size()).collect(Collectors.toList()).get(0).get(0).getFirstName();
+        return name;
     }
 
-    public static int numberOfStudentFailStream(Student[] studentArray){
-        int count = Stream.of(studentArray).parallel().filter(s ->s.getGrade() <40).toArray().length;
-        return count;
-    }
 
-    private static class numberOfStudentFailFork extends RecursiveTask<Integer> {
+
+    private static class mostCommonFirstNameFork extends RecursiveAction {
         private final int startIndex;
         private final int endIndex;
         private final Student[] input;
+        public Map<String, Integer> nameNums;
 
-        numberOfStudentFailFork(final int startIndex, final int endIndex, final Student[] studentArray) {
+        mostCommonFirstNameFork(final int startIndex, final int endIndex, final Student[] input) {
             this.startIndex = startIndex;
             this.endIndex = endIndex;
-            this.input = studentArray;
+            this.input = input;
         }
         @Override
-        protected Integer compute() {
-            Integer count = 0;
-            for(int i = startIndex; i<endIndex; i++){
-                if (input[i].getGrade()<40){
-                    count +=1;
+        protected void compute() {
+            Map<String, Integer> nameNums = new HashMap<String, Integer>();
+
+            for (int i = startIndex; i < endIndex; i++) {
+
+                Student s = this.input[i];
+                if (nameNums.containsKey(s.getFirstName())) {
+                    nameNums.put(s.getFirstName(),
+                            nameNums.get(s.getFirstName()) + 1);
+                } else {
+                    nameNums.put(s.getFirstName(), 1);
                 }
             }
-            return count;
+            this.nameNums=nameNums;
         }
-
     }
 
-    public static int numberOfStudentFailForkMultiple(Student[] studentArray, int threadsnum ){
-        int result = 0;
-        numberOfStudentFailFork[] threadsArray =new numberOfStudentFailFork[threadsnum];
+    public static String mostCommonFirstNameForkMultiple(Student[] studentArray, int threadsnum ){
+        mostCommonFirstNameFork[] threadsArray =new mostCommonFirstNameFork[threadsnum];
         for(int i =0; i<threadsnum; i++){
-            threadsArray[i]=new numberOfStudentFailFork(i*studentArray.length/threadsnum,(i+1)*studentArray.length/threadsnum,studentArray);
+            threadsArray[i]=new mostCommonFirstNameFork(getChunkStartInclusive(i, threadsnum,studentArray.length),getChunkEndExclusive(i, threadsnum,studentArray.length),studentArray);
         }
         for (int i=0; i<threadsnum-1; i++){
             threadsArray[i].fork();
         }
-        result+=threadsArray[threadsnum-1].compute();
+        threadsArray[threadsnum-1].compute();
 
         for(int i=0; i<threadsnum-1; i++){
-            result+=threadsArray[i].join();
+            threadsArray[i].join();
         }
-        return result;
+        String mostCommon = null;
+        int mostCommonCount = -1;
+        Map<String, Integer> nameNums = new HashMap<String, Integer>();
+        for(mostCommonFirstNameFork s : threadsArray){
+            Map<String, Integer> threadNameNums =s.nameNums;
+            for(String key : threadNameNums.keySet()){
+                if (nameNums.containsKey(key)) {
+                    nameNums.put(key,
+                            nameNums.get(key) + threadNameNums.get(key));
+                }
+                else {
+                    nameNums.put(key, threadNameNums.get(key));
+                }
+            }
+        }
+        for (Map.Entry<String, Integer> entry : nameNums.entrySet()) {
+            if (mostCommon == null || entry.getValue() > mostCommonCount) {
+                mostCommon = entry.getKey();
+                mostCommonCount = entry.getValue();
+            }
+        }
+        return mostCommon;
     }
     public static class studentSelectionThreadClass extends Thread{
-        private int result;
-        private final Student[]  input;
+        private final int startIndex;
+        private final int endIndex;
+        private final Student[] input;
+        public Map<String, Integer> nameNums;
 
-        public studentSelectionThreadClass(Student[] input) {
-            this.result = 0;
-            this.input =input;
+
+        public studentSelectionThreadClass(final int startIndex, final int endIndex,Student[] input) {
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
+            this.input = input;
         }
-        public void run(){
-            result=numberOfStudentFailSeq(input);
-        }
-        public int getResult(){
-            return this.result;
+        public void run() {
+            Map<String, Integer> nameNums = new HashMap<String, Integer>();
+
+            for (int i = startIndex; i < endIndex; i++) {
+
+                Student s = this.input[i];
+                if (nameNums.containsKey(s.getFirstName())) {
+                    nameNums.put(s.getFirstName(),
+                            nameNums.get(s.getFirstName()) + 1);
+                } else {
+                    nameNums.put(s.getFirstName(), 1);
+                }
+            }
+            this.nameNums = nameNums;
         }
     }
-    public static int studentSelectionThread (Student[] students, int threadsnum) throws InterruptedException {
-        int sum = 0;
-        ArrayList<Student[]> chunks=splitChunks(Arrays.asList((students)),threadsnum);
-        ArrayList<studentSelectionThreadClass> threadList=new ArrayList<studentSelectionThreadClass>();
-        for (int i =0; i<chunks.size();i++){
-            studentSelectionThreadClass thread = new studentSelectionThreadClass(chunks.get(i));
-            threadList.add(thread);
+    public static String studentSelectionThread (Student[] studentArray, int threadsnum) throws InterruptedException {
+        studentSelectionThreadClass[] threadArray =new studentSelectionThreadClass[threadsnum];
+        for (int i =0; i<threadsnum;i++){
+            studentSelectionThreadClass thread = new studentSelectionThreadClass(getChunkStartInclusive(i, threadsnum,studentArray.length),getChunkEndExclusive(i, threadsnum,studentArray.length),studentArray);
+            threadArray[i]=(thread);
             thread.start();
         }
-        for (studentSelectionThreadClass t :threadList){
+        String mostCommon = null;
+        int mostCommonCount = -1;
+        Map<String, Integer> nameNums = new HashMap<String, Integer>();
+
+        for (studentSelectionThreadClass t :threadArray){
             t.join();
-            int result = t.getResult();
-            sum+=result;
+            Map<String, Integer> threadNameNums =t.nameNums;
+            for(String key : threadNameNums.keySet()){
+                if (nameNums.containsKey(key)) {
+                nameNums.put(key,
+                        nameNums.get(key) + threadNameNums.get(key));
+                }
+                else {
+                nameNums.put(key, threadNameNums.get(key));
+                }
+            }
         }
-        return sum;
-    }
-
-    public static ArrayList<Student[]> splitChunks(List<Student> bigList, int n){
-        ArrayList<Student[]> chunks = new ArrayList<Student[]>();
-
-        for (int i = 0; i < bigList.size(); i += n) {
-            Student[] chunk = (Student[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();
-            chunks.add(chunk);
+        for (Map.Entry<String, Integer> entry : nameNums.entrySet()) {
+            if (mostCommon == null || entry.getValue() > mostCommonCount) {
+                mostCommon = entry.getKey();
+                mostCommonCount = entry.getValue();
+            }
         }
-        return chunks;
+        return mostCommon;
     }
 }
+

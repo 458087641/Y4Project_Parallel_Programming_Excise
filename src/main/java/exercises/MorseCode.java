@@ -58,24 +58,25 @@ public class MorseCode {
         morseDic.put("-", "-....-");
         morseDic.put("@", ".--.-.");
         morseDic.put("\n","\n");
+        morseDic.put(" ","/");
     }
 
     public static String englishToMorse(String text){
         StringBuffer buffer = new StringBuffer();
 
-        String[] splitedText= text.split(" ");
-        for(String i :splitedText){
-            for(char c : i.toCharArray()){
+        //String[] splitedText= text.split(" ");
+        //for(String i :splitedText){
+            for(char c : text.toCharArray()){
                 if(morseDic.get(String.valueOf(c).toUpperCase())==null){
                     System.out.println(c);
                 }
                 buffer.append(morseDic.get(String.valueOf(c).toUpperCase()));
                 buffer.append(" ");
             }
-            if(splitedText[splitedText.length-1] !=i){
-                buffer.append("/ ");
-            }
-        }
+            //if(splitedText[splitedText.length-1] !=i){
+                //buffer.append("/ ");
+            //}
+        //}
         buffer.deleteCharAt(buffer.length() -1);
         return buffer.toString();
     }

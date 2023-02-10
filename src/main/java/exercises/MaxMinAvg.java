@@ -1,155 +1,173 @@
 package exercises;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
+import static exercises.Helper.getChunkEndExclusive;
+import static exercises.Helper.getChunkStartInclusive;
 public class MaxMinAvg {
     enum ThreadFunction{
         Max,
         Min,
-        Avg,
+        Sum,
         All,
     }
-    public static int findMax(ArrayList<Integer> inputArray){
-        int max =Integer.MIN_VALUE;
-        for (int i :inputArray){
+    public static double findMax(ArrayList<Double> inputArray){
+        double max =Integer.MIN_VALUE;
+        for (double i :inputArray){
             if (i> max){
                 max =i;
             }
         }
         return  max;
     }
-    public static int findMin(ArrayList<Integer> inputArray){
-        int min = Integer.MAX_VALUE;
-        for (int i :inputArray){
+    public static double findMin(ArrayList<Double> inputArray){
+        double min = Integer.MAX_VALUE;
+        for (double i :inputArray){
             if (i< min){
                 min =i;
             }
         }
         return  min;
     }
-    public static int findAvg(ArrayList<Integer> inputArray){
-        int avg;
-        int sum = 0;
-        for(int i :inputArray){
+    public static double findSum(ArrayList<Double> inputArray){
+        Double sum = 0.0;
+        for(Double i :inputArray){
             sum+=i;
         }
-        avg= sum/inputArray.size();
-        return avg;
+
+        return sum;
     }
-    public static int[] maxMinAvgSeq(ArrayList<Integer> input){
-        int[] result=new int[3];
+    public static double[] maxMinAvgSeq(ArrayList<Double> input){
+        double[] result=new double[3];
         result[0]=findMax(input);
         result[1]=findMin(input);
-        result[2]=findAvg(input);
+        result[2]=  findSum(input);
         return result;
     }
     private static class maxMinAvgParallelThreadClass extends Thread{
-        private final ArrayList<Integer> inputArray;
-        private ThreadFunction functionName;
-        private int max =0;
-        private int min =0;
-        private int avg =0;
-        private maxMinAvgParallelThreadClass(ArrayList<Integer> inputArray, ThreadFunction functionName) {
+        private final ArrayList<Double> inputArray;
+        private final ThreadFunction functionName;
+        private final int startIndex;
+        private final int endIndex;
+        private double max =0;
+        private double min =0;
+        private double sum =0;
+        private maxMinAvgParallelThreadClass(ArrayList<Double> inputArray, ThreadFunction functionName, int startIndex, int endIndex) {
             this.inputArray = inputArray;
             this.functionName = functionName;
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
         }
 
         public void run(){
-            if (functionName==ThreadFunction.All){
-                max = findMax(inputArray);
-                min = findMin(inputArray);
-                avg = findAvg(inputArray);
+            ArrayList<Double> tempArray = new ArrayList<>();
+            for(int i = startIndex; i<endIndex; i++){
+                tempArray.add(inputArray.get(i));
             }
-            if(functionName==ThreadFunction.Avg){
-                avg= findAvg(inputArray);
+            if (functionName==ThreadFunction.All){
+
+                max = findMax(tempArray);
+                min = findMin(tempArray);
+                sum = findSum(tempArray);
+            }
+            if(functionName==ThreadFunction.Sum){
+                sum= findSum(tempArray);
             }
             if(functionName==ThreadFunction.Max){
-                max= findMax(inputArray);
+                max= findMax(tempArray);
             }
             if(functionName==ThreadFunction.Min){
-                min= findMin(inputArray);
+                min= findMin(tempArray);
             }
         }
 
-        public int getAvg() {
-            return avg;
+        public double getSum() {
+            return sum;
         }
 
-        public int getMax() {
+        public double getMax() {
             return max;
         }
 
-        public int getMin() {
+        public double getMin() {
             return min;
         }
     }
-    public static int[] maxMinAvgTaskParallelThread(ArrayList<Integer> input) throws InterruptedException {
-        int[] result=new int[3];
-        maxMinAvgParallelThreadClass threadMax = new maxMinAvgParallelThreadClass(input,ThreadFunction.Max);
-        maxMinAvgParallelThreadClass threadMin = new maxMinAvgParallelThreadClass(input,ThreadFunction.Min);
-        maxMinAvgParallelThreadClass threadAvg = new maxMinAvgParallelThreadClass(input,ThreadFunction.Avg);
+    public static double[] maxMinSumTaskParallelThread(ArrayList<Double> input) throws InterruptedException {
+        double[] result=new double[3];
+        maxMinAvgParallelThreadClass threadMax = new maxMinAvgParallelThreadClass(input,ThreadFunction.Max, 0, input.size());
+        maxMinAvgParallelThreadClass threadMin = new maxMinAvgParallelThreadClass(input,ThreadFunction.Min, 0, input.size());
+        maxMinAvgParallelThreadClass threadAvg = new maxMinAvgParallelThreadClass(input,ThreadFunction.Sum, 0, input.size());
+        threadMax.start();
+        threadMin.start();
+        threadAvg.start();
         threadMax.join();
         threadMin.join();
         threadAvg.join();
         result[0]=threadMax.getMax();
         result[1]=threadMin.getMin();
-        result[2]=threadAvg.getAvg();
+        result[2]= threadAvg.getSum();
         return result;
     }
     //for conparison to task parallel, the number of thread used in data parallel is hardcoded to 3
-    public static int[] maxMinAvgDataParallelThread(ArrayList<Integer> input) throws InterruptedException {
-        int[] result=new int[3];
-        ArrayList<Integer> tempMax= new ArrayList<>();
-        ArrayList<Integer> tempMin= new ArrayList<>();
-        ArrayList<Integer> tempAvg= new ArrayList<>();
+    public static double[] maxMinAvgDataParallelThread(ArrayList<Double> input,int threadnum) throws InterruptedException {
+        double[] result=new double[3];
+        ArrayList<Double> tempMax= new ArrayList<>();
+        ArrayList<Double> tempMin= new ArrayList<>();
+        ArrayList<Double> tempSum= new ArrayList<>();
         ArrayList<maxMinAvgParallelThreadClass> threadList=new ArrayList<>();
-        ArrayList<Integer[]> chunks= splitChunks(input,3);
-        for(int i=0; i<3; i++){
-            maxMinAvgParallelThreadClass thread = new maxMinAvgParallelThreadClass(new ArrayList<>(Arrays.asList(chunks.get(i))),ThreadFunction.All);
+        for(int i=0; i<threadnum; i++){
+            maxMinAvgParallelThreadClass thread = new maxMinAvgParallelThreadClass(input,ThreadFunction.All, getChunkStartInclusive(i,threadnum,input.size()), getChunkEndExclusive(i, threadnum,input.size()));
             threadList.add(thread);
             thread.start();
         }
+        double avg =0.0;
         for(maxMinAvgParallelThreadClass t :threadList){
             t.join();
             tempMax.add(t.getMax());
             tempMin.add(t.getMin());
-            tempAvg.add((t.getAvg()));
+            tempSum.add(t.getSum());
         }
         result[0]=findMax(tempMax);
         result[1]=findMin(tempMin);
-        result[2]=findAvg(tempAvg);
+        result[2]=findSum(tempSum);
         return result;
     }
     private static class dataTaskParallelThreadClass extends Thread{
-        private final ArrayList<Integer> input;
-        private int[] result;
-
-        private dataTaskParallelThreadClass(ArrayList<Integer> input) {
+        private final ArrayList<Double> input;
+        private double[] result;
+        private final int startIndex;
+        private final int endIndex;
+        private dataTaskParallelThreadClass(ArrayList<Double> input, int startIndex, int endIndex) {
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
             this.input = input;
         }
         public void run(){
             try {
-                result=maxMinAvgTaskParallelThread(input);
+                ArrayList<Double> tempArray = new ArrayList<>();
+                for(int i = startIndex; i<endIndex; i++) {
+                    tempArray.add(input.get(i));
+                }
+                result = maxMinSumTaskParallelThread(tempArray);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        public int[] getResult() {
+        public double[] getResult() {
             return result;
         }
     }
-    public int[] maxMinAvgDataTaskParallelThread(ArrayList<Integer> input) throws InterruptedException {
-        ArrayList<int[]> resultList= new ArrayList<>();
-        int[] result=new int[3];
-        ArrayList<Integer[]> chunks= splitChunks(input,3);
+    public double[] maxMinAvgDataTaskParallelThread(ArrayList<Double> input) throws InterruptedException {
+        ArrayList<double[]> resultList= new ArrayList<>();
+        double[] result=new double[3];
         ArrayList<dataTaskParallelThreadClass> threadList=new ArrayList<>();
-        ArrayList<Integer> tempMax= new ArrayList<>();
-        ArrayList<Integer> tempMin= new ArrayList<>();
-        ArrayList<Integer> tempAvg= new ArrayList<>();
+        ArrayList<Double> tempMax= new ArrayList<>();
+        ArrayList<Double> tempMin= new ArrayList<>();
+        ArrayList<Double> tempSum= new ArrayList<>();
         for(int i=0; i<3;i++){
-            dataTaskParallelThreadClass thread = new dataTaskParallelThreadClass(new ArrayList<>(Arrays.asList(chunks.get(i))));
+            dataTaskParallelThreadClass thread = new dataTaskParallelThreadClass(input,getChunkStartInclusive(i,3,input.size()), getChunkEndExclusive(i, 3,input.size()));
             threadList.add(thread);
             thread.start();
         }
@@ -157,24 +175,16 @@ public class MaxMinAvg {
             t.join();
             resultList.add(t.getResult());
         }
-        for(int[] i :resultList){
+        for(double[] i :resultList){
             tempMax.add(i[0]);
             tempMin.add(i[1]);
-            tempAvg.add(i[2]);
+            tempSum.add(i[2]);
         }
         result[0]=findMax(tempMax);
         result[1]=findMin(tempMin);
-        result[2]=findAvg(tempAvg);
+        result[2]=findSum(tempSum);
         return result;
     }
 
-    public static ArrayList<Integer[]> splitChunks(ArrayList<Integer> bigList, int n){
-        ArrayList<Integer[]> chunks = new ArrayList<>();
 
-        for (int i = 0; i < bigList.size(); i += n) {
-            Integer[] chunk = (Integer[])bigList.subList(i, Math.min(bigList.size(), i + n)).toArray();
-            chunks.add(chunk);
-        }
-        return chunks;
-    }
 }

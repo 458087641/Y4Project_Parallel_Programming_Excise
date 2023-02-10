@@ -4,8 +4,13 @@ import junit.framework.TestCase;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
+import exercises.Helper.*;
+
+import static exercises.Helper.generateString;
 
 public class MorseCodeTest extends TestCase {
+
 
     public void testSeqCorrectness(){
         MorseCode translator = new MorseCode();
@@ -75,7 +80,7 @@ public class MorseCodeTest extends TestCase {
         Path filePath = Path.of("./morse_test.txt");
         String content = Files.readString(filePath);
         String resultSeq=translator.englishToMoerseSeq(content);
-        String resultPar=translator.morseThread(content,2);
+        String resultPar=translator.morseThread(content,4);
         //System.out.println(resultPar);
         assertEquals(resultSeq,resultPar);
     }
@@ -90,7 +95,7 @@ public class MorseCodeTest extends TestCase {
         String resultSeq=translator.englishToMoerseSeq(content);
         long seqEndTime = System.nanoTime();
         long parStartTime = System.nanoTime();
-        String resultPar=translator.morseThread(content,1);
+        String resultPar=translator.morseThread(content,2);
         long parEndTime = System.nanoTime();
         long seqTime = (seqEndTime - seqStartTime);
         long parTime = (parEndTime - parStartTime);
@@ -101,7 +106,7 @@ public class MorseCodeTest extends TestCase {
         Path filePath = Path.of("./morse_test.txt");
         String content = Files.readString(filePath);
         long parStartTime = System.nanoTime();
-        String resultPar=translator.morseThread(content,1);
+        String resultPar=translator.morseThread(content,4);
         long parEndTime = System.nanoTime();
         long seqStartTime = System.nanoTime();
         String resultSeq=translator.englishToMoerseSeq(content);
@@ -123,28 +128,64 @@ public class MorseCodeTest extends TestCase {
         for(int i =1; i<=8; i++){
             StringBuffer buffer = new StringBuffer();
             System.out.println("Thread class Test with Threadnum " + i);
-            for (int j=1; j<8;j++){
+            for (int j=1; j<7;j++){
                 for(int k=0;k<Math.pow(10,j);k++){
-                    buffer.append("abcde ");
+                    buffer.append(generateString());
                 }
                 String content =buffer.toString();
-
+                for(int l=0; l<100;l++) {
+                    resultSeq = translator.englishToMoerseSeq(content);
+                }
                 long seqStartTime = System.nanoTime();
-                for(int l=0; l<30;l++) {
+                for(int l=0; l<100;l++) {
                     resultSeq = translator.englishToMoerseSeq(content);
                 }
                 long seqEndTime = System.nanoTime();
-
                 long parStartTime = System.nanoTime();
-
-                for(int l=0; l<30;l++) {
+                for(int l=0; l<100;l++) {
                     resultPar=translator.morseThread(content,i);
                 }
                 long parEndTime = System.nanoTime();
                 assertEquals(resultSeq,resultPar);
                 long seqTime = (seqEndTime - seqStartTime);
                 long parTime = (parEndTime - parStartTime);
-                System.out.println("data amount "+ Math.pow(10,j) +"words "+"speedup "+ (double)seqTime/(double)parTime +" ");
+                System.out.println("data amount "+ Math.pow(10,j) +" words "+"speedup "+ (double)seqTime/(double)parTime +" ");
+            }
+        }
+
+    }
+
+    public void testForkSpeedUpData() throws IOException {
+        MorseCode translator = new MorseCode();
+        String resultSeq =new String();
+        String resultPar =new String();
+        for(int i =1; i<=8; i++){
+            StringBuffer buffer = new StringBuffer();
+            System.out.println("ForkJoin Test with Threadnum " + i);
+            for (int j=1; j<7;j++){
+                for(int k=0;k<Math.pow(10,j);k++){
+                    buffer.append(generateString());
+                }
+                String content =buffer.toString();
+
+                for(int l=0; l<100;l++) {
+                    resultSeq = translator.englishToMoerseSeq(content);
+                }
+
+                long seqStartTime = System.nanoTime();
+                for(int l=0; l<100;l++) {
+                    resultSeq = translator.englishToMoerseSeq(content);
+                }
+                long seqEndTime = System.nanoTime();
+                long parStartTime = System.nanoTime();
+                for(int l=0; l<100;l++) {
+                    resultPar=translator.morseForkJoinMultiple(content,i);
+                }
+                long parEndTime = System.nanoTime();
+                assertEquals(resultSeq,resultPar);
+                long seqTime = (seqEndTime - seqStartTime);
+                long parTime = (parEndTime - parStartTime);
+                System.out.println("data amount "+ Math.pow(10,j) +" words "+"speedup "+ (double)seqTime/(double)parTime +" ");
             }
         }
 
