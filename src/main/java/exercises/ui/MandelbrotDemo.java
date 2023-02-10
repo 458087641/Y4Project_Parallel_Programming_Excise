@@ -7,9 +7,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
 import java.text.DecimalFormat;
@@ -43,20 +40,8 @@ public class MandelbrotDemo extends JFrame {
 	protected int maxIteration = 1000;
 	protected int width  = 1920;
 	protected int height = 1080;
-	
-	protected int patchSizeIndex = 1;
-	protected int[][]  patchSize = new int[][]{
-			{5, 5},
-			{10, 10},
-			{25, 25},
-			{50, 50},
-			{100, 100}
-			};
-	
+
 	protected boolean isFixeSize = false;
-	protected int colorMethod = 1;
-	protected Color color = new Color(255, 255, 255);
-	protected int multithreadMethod = 0;
 	protected boolean isLiveRendering = true;
 	
 	protected int[]imageArray = null;
@@ -72,17 +57,16 @@ public class MandelbrotDemo extends JFrame {
 	
 	private MandelbrotDemo instance;
 	private boolean isComputing = false;
-	protected int nbCores = Runtime.getRuntime().availableProcessors();
-	protected int nbThreads = Runtime.getRuntime().availableProcessors();
+	protected int coreNum = Runtime.getRuntime().availableProcessors();
+	protected int threadsNum = Runtime.getRuntime().availableProcessors();
 	
 	private Deque<double[]> stackOfZoom = null;
 	private Deque<BufferedImage> stackOfZoomImage = null;
-	
-	protected int threshold = 10000;
+
 	
 	
 	public MandelbrotDemo() {
-		super("mand");
+		super("Mandel");
 
 		instance = this;
 		stackOfZoomImage = new ArrayDeque<BufferedImage>();
@@ -90,8 +74,8 @@ public class MandelbrotDemo extends JFrame {
 		
 		initComponents();
 		
-		setMinimumSize(new Dimension(640, 480));
-		setSize(850, 850);
+		setMinimumSize(new Dimension(1920, 1080));
+		setSize(1920, 1080);
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
@@ -101,7 +85,7 @@ public class MandelbrotDemo extends JFrame {
 
 		canvas = new Canvas();
 
-		startButton = new JButton("Start !");
+		startButton = new JButton("Start");
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -113,7 +97,7 @@ public class MandelbrotDemo extends JFrame {
 			}
 		});
 
-		infoTextField = new JTextField("nb threads : " + nbThreads);
+		infoTextField = new JTextField("number of threads : " + threadsNum);
 		infoTextField.setColumns(26);
 		infoTextField.setEditable(false);
 
@@ -185,23 +169,22 @@ public class MandelbrotDemo extends JFrame {
     
     protected long multithread(boolean isBenchmarking) {
     	long before = Calendar.getInstance().getTimeInMillis();
-		ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
-		
-		int sqrNbThreads = (int) Math.sqrt(nbThreads);
+		ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
+
 		int stepI, stepJ;
 		
-		if(nbThreads % 2 == 0) {
+		if(threadsNum % 2 == 0) {
 			stepI = (int) Math.floor(height / 2.0);
-			stepJ = (int) Math.floor(width / (double)(nbThreads/2));
+			stepJ = (int) Math.floor(width / (double)(threadsNum /2));
 			
 			for(int i = 0; i<2; i++) {
-				for(int j = 0; j<nbThreads/2; j++) {
+				for(int j = 0; j< threadsNum /2; j++) {
 					int startI 	 = stepI * i;
 					int endI	 = startI + stepI;
 					int startJ 	 = stepJ * j;
 					int endJ 	 = startJ + stepJ;
 					
-					if(j == nbThreads/2 - 1) {
+					if(j == threadsNum /2 - 1) {
 						endJ = width - 1;
 					}
 					if(i == 1) {
@@ -212,13 +195,13 @@ public class MandelbrotDemo extends JFrame {
 			}
 		} else {
 			stepI = height;
-			stepJ = (int) Math.floor(width / (double)nbThreads);
+			stepJ = (int) Math.floor(width / (double) threadsNum);
 			
-			for(int j = 0; j<nbThreads; j++) {
+			for(int j = 0; j< threadsNum; j++) {
 				int startJ 	 = stepJ * j;
 				int endJ 	 = startJ + stepJ;
 				
-				if(j == nbThreads-1) {
+				if(j == threadsNum -1) {
 					endJ = width - 1;
 				}
 				executor.submit(new RenderThread(instance, 0, height, startJ, endJ, isBenchmarking));
@@ -239,7 +222,7 @@ public class MandelbrotDemo extends JFrame {
 			SwingUtilities.invokeLater(new Runnable() {					
 				@Override
 				public void run() {
-					infoTextField.setText("nb threads : " + nbThreads + "  /  processing time : " + df.format(time) + " s");
+					infoTextField.setText("Number of Threads : " + threadsNum + " processing time : " + df.format(time) + " s");
 				}
 			});
 		}
@@ -247,102 +230,19 @@ public class MandelbrotDemo extends JFrame {
 		return after - before;
     }
     
-    public void setNbCores(int nb) {
-    	nbThreads = nb;
-    	infoTextField.setText("nb threads : " + nbThreads);
+    public void setThreadsNum(int num) {
+    	threadsNum = num;
+    	infoTextField.setText("nb threads : " + threadsNum);
     }
     
     private class Canvas extends JPanel {
 		private static final long serialVersionUID = 1L;
 		private MyRect currentRect = null;
-		private boolean mouseDragged = false;
+
 		
 		public Canvas() {
-			addMouseListener(new MouseListener() {
-				
-				@Override
-				public void mouseReleased(MouseEvent e) {
-					if(null != renderImage && !isComputing && mouseDragged) {
-						renderImage = null;
 
-						updateSize(e);
-						if(currentRect.isZooming()) {
-				            
-				        	zoomX 	= width / (x2 - x1);
-				        	zoomY 	= height / (y2 - y1);
-				            
-				        	double oldX1 = x1, oldY1 = y1;
-				        	
-							x1 = (currentRect.getLeftSide() * width / getWidth()) / zoomX + oldX1;
-							x2 = (currentRect.getRightSide() * width / getWidth()) / zoomX + oldX1;
-							y1 = (currentRect.getUpSide() * height / getHeight()) / zoomY + oldY1;
-							y2 = (currentRect.getDownSide() * height / getHeight()) / zoomY + oldY1;
-							
-							stackOfZoom.add(new double[]{x1, y1, x2, y2});
-							
-							computeMandelbrot();
-							stackOfZoomImage.add(renderImage);
-						} else {
-							stackOfZoom.pollLast();
-							if(!stackOfZoom.isEmpty()) {
-								x1 = stackOfZoom.getLast()[0];
-								y1 = stackOfZoom.getLast()[1];
-								x2 = stackOfZoom.getLast()[2];
-								y2 = stackOfZoom.getLast()[3];
-							}
-							
-							stackOfZoomImage.pollLast();
-							if(!stackOfZoomImage.isEmpty()) {
-								renderImage = stackOfZoomImage.getLast();
-							}							
-						}
-					}
-					
-					currentRect = null;
-					mouseDragged = false;
-					repaint();
-				}
-				
-				@Override
-				public void mousePressed(MouseEvent e) {
-					int x = e.getX();
-		            int y = e.getY();
-		            currentRect = new MyRect(x, y);
-		            repaint();
-				}
-				
-				@Override
-				public void mouseExited(MouseEvent e) {
-				}
-				
-				@Override
-				public void mouseEntered(MouseEvent e) {
-				}
-				
-				@Override
-				public void mouseClicked(MouseEvent e) {
-				}
-			});
-			
-			addMouseMotionListener(new MouseMotionListener() {				
-				@Override
-				public void mouseMoved(MouseEvent e) {					
-				}
-				
-				@Override
-				public void mouseDragged(MouseEvent e) {
-					mouseDragged = true;
-					updateSize(e);
-				}
-			});
 		}
-		
-		void updateSize(MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
-            currentRect.update(x, y);
-            repaint();
-        }
 
 		@Override
     	public void paintComponent(Graphics g) {
@@ -354,7 +254,6 @@ public class MandelbrotDemo extends JFrame {
 	    			g2.drawImage(renderImage, 0, 0, getWidth(), getHeight(), this);
 	    		}
     		}
-    		
     		if(null != currentRect) {
     			g2.drawRect(currentRect.getLeftSide(), currentRect.getUpSide(), currentRect.getWidth(), currentRect.getHeight());
     		}

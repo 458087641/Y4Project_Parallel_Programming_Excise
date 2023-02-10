@@ -44,10 +44,10 @@ public class ParametersDialog extends JDialog {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		JPanel centerPanel = new JPanel(new GridBagLayout());
-		sliderLabel = new JLabel("Nb threads :");
+		sliderLabel = new JLabel("number of threads :");
 
-		nbThreadsSlider = new JSlider(1, 2 * mandelbrot.nbCores, mandelbrot.nbThreads);
-		nbThreadsSlider.setMajorTickSpacing(mandelbrot.nbCores / 2 );
+		nbThreadsSlider = new JSlider(1, 2 * mandelbrot.coreNum, mandelbrot.threadsNum);
+		nbThreadsSlider.setMajorTickSpacing(mandelbrot.coreNum / 2 );
 		nbThreadsSlider.setMinorTickSpacing(1);
 		nbThreadsSlider.setPaintTicks(true);
 		nbThreadsSlider.setPaintLabels(true);
@@ -79,7 +79,7 @@ public class ParametersDialog extends JDialog {
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mandelbrot.setNbCores(nbThreadsSlider.getValue());
+				mandelbrot.setThreadsNum(nbThreadsSlider.getValue());
 
 				dispose();
 			}

@@ -33,27 +33,7 @@ public class RenderThread implements Runnable {
                 
                 Complex z0 = new Complex(x0, y0);
                 Color color = new Color(168, 32, 32);
-
-                switch(mandelbrot.colorMethod) {
-                case 0:
-                	color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
-                	break;
-                case 1:
-                	color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
-                	break;
-                case 2:
-                	color = Mandelbrot.redMandelbrot(z0, mandelbrot.maxIteration, mandelbrot.color);
-                	break;
-                case 3:
-                	color = Mandelbrot.greenMandelbrot(z0, mandelbrot.maxIteration, mandelbrot.color);
-                	break;
-                case 4:
-                	color = Mandelbrot.blueMandelbrot(z0, mandelbrot.maxIteration, mandelbrot.color);
-                	break;
-            	default:
-            		color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
-            		break;
-                }
+				color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
 
                 if(!isBenchmarking && mandelbrot.isLiveRendering) {
 					//Not needed as setRGB is already synchronized
