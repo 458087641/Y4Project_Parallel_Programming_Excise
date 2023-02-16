@@ -12,16 +12,14 @@ public class RenderThread implements Runnable {
 	private int endX;
 	private int startY;
 	private int endY;
-	private boolean isBenchmarking;
 	
 	
-	public RenderThread(MandelbrotDemo mandelbrot, int startX, int endX, int startY, int endY, boolean isBenchmarking) {
+	public RenderThread(MandelbrotDemo mandelbrot, int startX, int endX, int startY, int endY) {
 		this.mandelbrot = mandelbrot;
 		this.startX = startX;
 		this.endX = endX;
 		this.startY = startY;
 		this.endY = endY;
-		this.isBenchmarking = isBenchmarking;
 	}
 
 	@Override
@@ -35,18 +33,13 @@ public class RenderThread implements Runnable {
                 Color color = new Color(168, 32, 32);
 				color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
 
-                if(!isBenchmarking && mandelbrot.isLiveRendering) {
-					//Not needed as setRGB is already synchronized
-                	//@see: http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/9b8c96f96a0f/src/share/classes/java/awt/image/BufferedImage.java#l987
-                    //synchronized (mandelbrot.lock) {
-                    	mandelbrot.renderImage.setRGB(j, i, color.getRGB());
-    				//}
+                if(mandelbrot.isLiveRendering) {
+					mandelbrot.renderImage.setRGB(j, i, color.getRGB());
                 } else {
                 	mandelbrot.imageArray[i * mandelbrot.width + j] = color.getRGB();
                 }
             }
-            
-            if(!isBenchmarking && mandelbrot.isLiveRendering) {
+            if(mandelbrot.isLiveRendering) {
             	mandelbrot.repaint();
             }            
         }

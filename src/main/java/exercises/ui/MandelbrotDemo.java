@@ -85,15 +85,11 @@ public class MandelbrotDemo extends JFrame {
 
 		canvas = new Canvas();
 
-		startButton = new JButton("Start");
+		startButton = new JButton("Render");
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				computeMandelbrot();
-				if (stackOfZoomImage.isEmpty()) {
-					stackOfZoomImage.add(renderImage);
-					stackOfZoom.add(new double[]{x1, y1, x2, y2});
-				}
 			}
 		});
 
@@ -106,8 +102,6 @@ public class MandelbrotDemo extends JFrame {
 		interactionPanel.add(infoTextField);
 
 		menu1 = new JMenu("Option");
-
-
 		JMenuItem paramItem = new JMenuItem("Parameters");
 		paramItem.addActionListener(new ActionListener() {
 			@Override
@@ -129,25 +123,15 @@ public class MandelbrotDemo extends JFrame {
     	isComputing = true;
     	startButton.setEnabled(false);
     	menu1.setEnabled(false);
-
-    	setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    	
-    	if(!isFixeSize) {
-        	width = canvas.getWidth();
-        	height = canvas.getHeight();
-    	}
-		
     	zoomX = width / (x2 - x1);
     	zoomY = height / (y2 - y1);
-    	
-    	imageArray = new int[width * height];
     	renderImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     	repaint();
     	
     	SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
 			@Override
 			protected Object doInBackground() throws Exception {
-				multithread(false);
+				multithread();
 				return null;
 			}
 			
@@ -156,23 +140,16 @@ public class MandelbrotDemo extends JFrame {
 				startButton.setEnabled(true);
 		    	menu1.setEnabled(true);
 				isComputing = false;
-				setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-				
-				if(!isLiveRendering) {
-					renderImage.setRGB(0, 0, renderImage.getWidth(), renderImage.getHeight(), imageArray, 0, renderImage.getWidth());
-					repaint();
-				}
 			}
 		};
     	sw.execute();
     }
     
-    protected long multithread(boolean isBenchmarking) {
+    protected void multithread() {
     	long before = Calendar.getInstance().getTimeInMillis();
 		ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
 
 		int stepI, stepJ;
-		
 		if(threadsNum % 2 == 0) {
 			stepI = (int) Math.floor(height / 2.0);
 			stepJ = (int) Math.floor(width / (double)(threadsNum /2));
@@ -190,11 +167,10 @@ public class MandelbrotDemo extends JFrame {
 					if(i == 1) {
 						endI = height - 1;
 					}
-					executor.submit(new RenderThread(instance, startI, endI, startJ, endJ, isBenchmarking));
+					executor.submit(new RenderThread(instance, startI, endI, startJ, endJ));
 				}
 			}
 		} else {
-			stepI = height;
 			stepJ = (int) Math.floor(width / (double) threadsNum);
 			
 			for(int j = 0; j< threadsNum; j++) {
@@ -204,44 +180,41 @@ public class MandelbrotDemo extends JFrame {
 				if(j == threadsNum -1) {
 					endJ = width - 1;
 				}
-				executor.submit(new RenderThread(instance, 0, height, startJ, endJ, isBenchmarking));
+				executor.submit(new RenderThread(instance, 0, height, startJ, endJ));
 			}
 		}
-		
+
 		executor.shutdown();
 		try {
 			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 		long after = Calendar.getInstance().getTimeInMillis();
-		if(!isBenchmarking) {
-			final double time = (after - before) / 1000.0;
-			final DecimalFormat df = new DecimalFormat("#.###");
-			SwingUtilities.invokeLater(new Runnable() {					
-				@Override
-				public void run() {
-					infoTextField.setText("Number of Threads : " + threadsNum + " processing time : " + df.format(time) + " s");
-				}
-			});
-		}
-		
-		return after - before;
+
+		final double time = (after - before) / 1000.0;
+		final DecimalFormat df = new DecimalFormat("#.###");
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				infoTextField.setText("Number of Threads : " + threadsNum + " processing time : " + df.format(time) + " s");
+			}
+		});
+
     }
     
     public void setThreadsNum(int num) {
     	threadsNum = num;
-    	infoTextField.setText("nb threads : " + threadsNum);
+    	infoTextField.setText("number of threads : " + threadsNum);
     }
-    
+
+	public void setMaxIteration(int num){
+		maxIteration = num;
+	}
     private class Canvas extends JPanel {
 		private static final long serialVersionUID = 1L;
 		private MyRect currentRect = null;
-
-		
 		public Canvas() {
-
 		}
 
 		@Override

@@ -3,25 +3,19 @@ package exercises.ui;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import javax.swing.JSlider;
+import javax.swing.*;
 
 public class ParametersDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	
 	private JLabel sliderLabel;
-	private JSlider nbThreadsSlider;
-
+	private JSlider threadsNumSlider;
+	private JLabel iterLabel;
+	private JSpinner iterBox;
 
 	private JButton okButton;
 	private JButton cancelButton;
@@ -46,41 +40,32 @@ public class ParametersDialog extends JDialog {
 		JPanel centerPanel = new JPanel(new GridBagLayout());
 		sliderLabel = new JLabel("number of threads :");
 
-		nbThreadsSlider = new JSlider(1, 2 * mandelbrot.coreNum, mandelbrot.threadsNum);
-		nbThreadsSlider.setMajorTickSpacing(mandelbrot.coreNum / 2 );
-		nbThreadsSlider.setMinorTickSpacing(1);
-		nbThreadsSlider.setPaintTicks(true);
-		nbThreadsSlider.setPaintLabels(true);
+		threadsNumSlider = new JSlider(1, 2 * mandelbrot.coreNum, mandelbrot.threadsNum);
+		threadsNumSlider.setMajorTickSpacing(mandelbrot.coreNum / 2 );
+		threadsNumSlider.setMinorTickSpacing(1);
+		threadsNumSlider.setPaintTicks(true);
+		threadsNumSlider.setPaintLabels(true);
+
+		iterLabel = new JLabel("Max Iterations");
+		iterBox = new JSpinner(new SpinnerNumberModel(1000, 1, 10000, 1));
 
 		GridBagConstraints c1 = new GridBagConstraints();
-		c1.gridx = 0;
-		c1.gridy = 0;
-		c1.weightx = 0;
-		c1.weighty = 0;
-		c1.anchor = GridBagConstraints.WEST;
-		c1.insets = new Insets(10, 10, 5, 5);
-
 		GridBagConstraints c2 = new GridBagConstraints();
-		c2.gridx = 1;
-		c2.gridy = 0;
-		c2.gridwidth = 5;
-		c2.weightx = 100;
-		c2.weighty = 0;
-		c2.fill = GridBagConstraints.HORIZONTAL;
-		c2.insets = new Insets(10, 5, 10, 10);
-
+		GridBagConstraints c3 = new GridBagConstraints();
+		GridBagConstraints c4 = new GridBagConstraints();
 
 		centerPanel.add(sliderLabel, c1);
-		centerPanel.add(nbThreadsSlider, c2);
-
+		centerPanel.add(threadsNumSlider, c2);
+		centerPanel.add(iterLabel,c3);
+		centerPanel.add(iterBox,c4);
 
 
 		okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mandelbrot.setThreadsNum(nbThreadsSlider.getValue());
-
+				mandelbrot.setThreadsNum(threadsNumSlider.getValue());
+				mandelbrot.setMaxIteration((Integer) iterBox.getValue());
 				dispose();
 			}
 		});
