@@ -213,7 +213,7 @@ public class MandelbrotDemo extends JFrame {
 	}
     private class Canvas extends JPanel {
 		private static final long serialVersionUID = 1L;
-		private MyRect currentRect = null;
+
 		public Canvas() {
 		}
 
@@ -227,9 +227,7 @@ public class MandelbrotDemo extends JFrame {
 	    			g2.drawImage(renderImage, 0, 0, getWidth(), getHeight(), this);
 	    		}
     		}
-    		if(null != currentRect) {
-    			g2.drawRect(currentRect.getLeftSide(), currentRect.getUpSide(), currentRect.getWidth(), currentRect.getHeight());
-    		}
+
     	}
     }
     
