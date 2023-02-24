@@ -30,18 +30,17 @@ import javax.swing.SwingWorker;
 public class MandelbrotDemo extends JFrame {
 
 	private static final long serialVersionUID = 1L;
-	protected double x1 = -2.1;
-	protected double x2 = 0.6;
-	protected double y1  = -1.2;
-	protected double y2 = 1.2;
+	protected double x1 = -2.0;
+	protected double x2 = 0.5;
+	protected double y1  = -1.0;
+	protected double y2 = 1.0;
 	protected double zoomX;
 	protected double zoomY;
-	
-	protected int maxIteration = 1000;
+	boolean optimise = false;
+	protected int maxIteration = 100;
 	protected int width  = 1920;
 	protected int height = 1080;
 
-	protected boolean isFixeSize = false;
 	protected boolean isLiveRendering = true;
 	
 	protected int[]imageArray = null;
@@ -59,9 +58,7 @@ public class MandelbrotDemo extends JFrame {
 	private boolean isComputing = false;
 	protected int coreNum = Runtime.getRuntime().availableProcessors();
 	protected int threadsNum = Runtime.getRuntime().availableProcessors();
-	
-	private Deque<double[]> stackOfZoom = null;
-	private Deque<BufferedImage> stackOfZoomImage = null;
+
 
 	
 	
@@ -69,12 +66,8 @@ public class MandelbrotDemo extends JFrame {
 		super("Mandel");
 
 		instance = this;
-		stackOfZoomImage = new ArrayDeque<BufferedImage>();
-		stackOfZoom = new ArrayDeque<double[]>();
-		
 		initComponents();
-		
-		setMinimumSize(new Dimension(1920, 1080));
+		setMinimumSize(new Dimension(1080, 720));
 		setSize(1920, 1080);
 		setLocationRelativeTo(null);
 		setVisible(true);
@@ -125,7 +118,7 @@ public class MandelbrotDemo extends JFrame {
     	menu1.setEnabled(false);
     	zoomX = width / (x2 - x1);
     	zoomY = height / (y2 - y1);
-    	renderImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    	renderImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     	repaint();
     	
     	SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
@@ -134,7 +127,6 @@ public class MandelbrotDemo extends JFrame {
 				multithread();
 				return null;
 			}
-			
 			@Override
 			protected void done() {
 				startButton.setEnabled(true);
@@ -150,40 +142,60 @@ public class MandelbrotDemo extends JFrame {
 		ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
 
 		int stepI, stepJ;
-		if(threadsNum % 2 == 0) {
-			stepI = (int) Math.floor(height / 2.0);
-			stepJ = (int) Math.floor(width / (double)(threadsNum /2));
-			
-			for(int i = 0; i<2; i++) {
-				for(int j = 0; j< threadsNum /2; j++) {
-					int startI 	 = stepI * i;
-					int endI	 = startI + stepI;
-					int startJ 	 = stepJ * j;
-					int endJ 	 = startJ + stepJ;
-					
-					if(j == threadsNum /2 - 1) {
-						endJ = width - 1;
-					}
-					if(i == 1) {
-						endI = height - 1;
-					}
-					executor.submit(new RenderThread(instance, startI, endI, startJ, endJ));
-				}
-			}
-		} else {
+
+		if (optimise==false) {
 			stepJ = (int) Math.floor(width / (double) threadsNum);
-			
-			for(int j = 0; j< threadsNum; j++) {
-				int startJ 	 = stepJ * j;
-				int endJ 	 = startJ + stepJ;
-				
-				if(j == threadsNum -1) {
+
+			for (int j = 0; j < threadsNum; j++) {
+				int startJ = stepJ * j;
+				int endJ = startJ + stepJ;
+
+				if (j == threadsNum - 1) {
 					endJ = width - 1;
 				}
-				executor.submit(new RenderThread(instance, 0, height, startJ, endJ));
+				if(threadsNum<=4){
+					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,j));
+				}
+				else {
+					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,-1));
+				}
 			}
 		}
+		else {
+			if (threadsNum % 2 == 0) {
+				stepI = (int) Math.floor(height / 2.0);
+				stepJ = (int) Math.floor(width / (double) (threadsNum / 2));
 
+				for (int i = 0; i < 2; i++) {
+					for (int j = 0; j < threadsNum / 2; j++) {
+						int startI = stepI * i;
+						int endI = startI + stepI;
+						int startJ = stepJ * j;
+						int endJ = startJ + stepJ;
+
+						if (j == threadsNum / 2 - 1) {
+							endJ = width - 1;
+						}
+						if (i == 1) {
+							endI = height - 1;
+						}
+						executor.submit(new RenderThread(instance, startI, endI, startJ, endJ,-1));
+					}
+				}
+			} else {
+				stepJ = (int) Math.floor(width / (double) threadsNum);
+
+				for (int j = 0; j < threadsNum; j++) {
+					int startJ = stepJ * j;
+					int endJ = startJ + stepJ;
+
+					if (j == threadsNum - 1) {
+						endJ = width - 1;
+					}
+					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,-1));
+				}
+			}
+		}
 		executor.shutdown();
 		try {
 			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -221,7 +233,6 @@ public class MandelbrotDemo extends JFrame {
     	public void paintComponent(Graphics g) {
     		super.paintComponent(g);
     		Graphics2D g2 = (Graphics2D) g;
-    		
     		synchronized (lock) {
 	    		if(null != renderImage) {
 	    			g2.drawImage(renderImage, 0, 0, getWidth(), getHeight(), this);

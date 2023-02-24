@@ -5,21 +5,22 @@ import java.awt.Color;
 import exercises.maths.Complex;
 import exercises.maths.Mandelbrot;
 
-public class RenderThread implements Runnable {
+public class RenderThread extends Thread {
 
 	private MandelbrotDemo mandelbrot;
 	private int startX;
 	private int endX;
 	private int startY;
 	private int endY;
+	private int colorInt;
 	
-	
-	public RenderThread(MandelbrotDemo mandelbrot, int startX, int endX, int startY, int endY) {
+	public RenderThread(MandelbrotDemo mandelbrot, int startX, int endX, int startY, int endY, int color) {
 		this.mandelbrot = mandelbrot;
 		this.startX = startX;
 		this.endX = endX;
 		this.startY = startY;
 		this.endY = endY;
+		this.colorInt = color;
 	}
 
 	@Override
@@ -31,8 +32,25 @@ public class RenderThread implements Runnable {
                 
                 Complex z0 = new Complex(x0, y0);
                 Color color = new Color(168, 32, 32);
-				color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
+				//color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
+				if(colorInt==-1) {
+					color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
+				}
+				if(colorInt == 0){
+					color = Mandelbrot.redMandelbrot(z0, mandelbrot.maxIteration, color);
+				}
+				if(colorInt == 1){
+					color = new Color(37, 168, 32);
 
+					color = Mandelbrot.greenMandelbrot(z0, mandelbrot.maxIteration, color);
+				}
+				if(colorInt == 2){
+					color = new Color(12, 29, 93);
+					color = Mandelbrot.blueMandelbrot(z0, mandelbrot.maxIteration, color);
+				}
+				if(colorInt == 3){
+					color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
+				}
                 if(mandelbrot.isLiveRendering) {
 					mandelbrot.renderImage.setRGB(j, i, color.getRGB());
                 } else {
