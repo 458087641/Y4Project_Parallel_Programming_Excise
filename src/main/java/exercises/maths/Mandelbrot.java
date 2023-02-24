@@ -9,13 +9,13 @@ public class Mandelbrot {
             if (z.abs() > 2.0) return t;
             z = z.times(z).plus(z0);
         }
-        return max;
+        return 0;
     }
 
 
     public static int colorMandelbrotFormula(Complex z0, int maxIter) {
-    	if(maxIter - Mandelbrot.mandelbrot(z0, maxIter) == 0) {
-    		return 0;
+    	if(Mandelbrot.mandelbrot(z0, maxIter) == 0) {
+    		return 255;
     	}
     	return Mandelbrot.mandelbrot(z0, maxIter) * 255 / maxIter ;
     }
