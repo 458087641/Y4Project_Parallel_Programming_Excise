@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import static exercises.Helper.getChunkEndExclusive;
 import static exercises.Helper.getChunkStartInclusive;
-public class MaxMinAvg {
+public class MaxMinSum {
     enum ThreadFunction{
         Max,
         Min,
@@ -37,14 +37,14 @@ public class MaxMinAvg {
 
         return sum;
     }
-    public static double[] maxMinAvgSeq(ArrayList<Double> input){
+    public static double[] maxMinSumSeq(ArrayList<Double> input){
         double[] result=new double[3];
         result[0]=findMax(input);
         result[1]=findMin(input);
         result[2]=  findSum(input);
         return result;
     }
-    private static class maxMinAvgParallelThreadClass extends Thread{
+    private static class maxMinSumParallelThreadClass extends Thread{
         private final ArrayList<Double> inputArray;
         private final ThreadFunction functionName;
         private final int startIndex;
@@ -52,7 +52,7 @@ public class MaxMinAvg {
         private double max =0;
         private double min =0;
         private double sum =0;
-        private maxMinAvgParallelThreadClass(ArrayList<Double> inputArray, ThreadFunction functionName, int startIndex, int endIndex) {
+        private maxMinSumParallelThreadClass(ArrayList<Double> inputArray, ThreadFunction functionName, int startIndex, int endIndex) {
             this.inputArray = inputArray;
             this.functionName = functionName;
             this.startIndex = startIndex;
@@ -95,9 +95,9 @@ public class MaxMinAvg {
     }
     public static double[] maxMinSumTaskParallelThread(ArrayList<Double> input) throws InterruptedException {
         double[] result=new double[3];
-        maxMinAvgParallelThreadClass threadMax = new maxMinAvgParallelThreadClass(input,ThreadFunction.Max, 0, input.size());
-        maxMinAvgParallelThreadClass threadMin = new maxMinAvgParallelThreadClass(input,ThreadFunction.Min, 0, input.size());
-        maxMinAvgParallelThreadClass threadAvg = new maxMinAvgParallelThreadClass(input,ThreadFunction.Sum, 0, input.size());
+        maxMinSumParallelThreadClass threadMax = new maxMinSumParallelThreadClass(input,ThreadFunction.Max, 0, input.size());
+        maxMinSumParallelThreadClass threadMin = new maxMinSumParallelThreadClass(input,ThreadFunction.Min, 0, input.size());
+        maxMinSumParallelThreadClass threadAvg = new maxMinSumParallelThreadClass(input,ThreadFunction.Sum, 0, input.size());
         threadMax.start();
         threadMin.start();
         threadAvg.start();
@@ -110,19 +110,19 @@ public class MaxMinAvg {
         return result;
     }
     //for conparison to task parallel, the number of thread used in data parallel is hardcoded to 3
-    public static double[] maxMinAvgDataParallelThread(ArrayList<Double> input,int threadnum) throws InterruptedException {
+    public static double[] maxMinSumDataParallelThread(ArrayList<Double> input, int threadnum) throws InterruptedException {
         double[] result=new double[3];
         ArrayList<Double> tempMax= new ArrayList<>();
         ArrayList<Double> tempMin= new ArrayList<>();
         ArrayList<Double> tempSum= new ArrayList<>();
-        ArrayList<maxMinAvgParallelThreadClass> threadList=new ArrayList<>();
+        ArrayList<maxMinSumParallelThreadClass> threadList=new ArrayList<>();
         for(int i=0; i<threadnum; i++){
-            maxMinAvgParallelThreadClass thread = new maxMinAvgParallelThreadClass(input,ThreadFunction.All, getChunkStartInclusive(i,threadnum,input.size()), getChunkEndExclusive(i, threadnum,input.size()));
+            maxMinSumParallelThreadClass thread = new maxMinSumParallelThreadClass(input,ThreadFunction.All, getChunkStartInclusive(i,threadnum,input.size()), getChunkEndExclusive(i, threadnum,input.size()));
             threadList.add(thread);
             thread.start();
         }
         double avg =0.0;
-        for(maxMinAvgParallelThreadClass t :threadList){
+        for(maxMinSumParallelThreadClass t :threadList){
             t.join();
             tempMax.add(t.getMax());
             tempMin.add(t.getMin());
@@ -159,7 +159,7 @@ public class MaxMinAvg {
             return result;
         }
     }
-    public double[] maxMinAvgDataTaskParallelThread(ArrayList<Double> input) throws InterruptedException {
+    public double[] maxMinSumDataTaskParallelThread(ArrayList<Double> input) throws InterruptedException {
         ArrayList<double[]> resultList= new ArrayList<>();
         double[] result=new double[3];
         ArrayList<dataTaskParallelThreadClass> threadList=new ArrayList<>();

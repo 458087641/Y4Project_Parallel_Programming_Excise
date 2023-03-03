@@ -1,11 +1,11 @@
 import junit.framework.TestCase;
-import exercises.MaxMinAvg;
+import exercises.MaxMinSum;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-public class MaxMinAvgTest extends TestCase{
+public class MaxMinSumTest extends TestCase{
 
     public ArrayList<Double> generateArray(int size){
         ArrayList<Double> array = new ArrayList<>();
@@ -19,8 +19,8 @@ public class MaxMinAvgTest extends TestCase{
     public void testSeqCorrectness(){
         ArrayList<Double> input = generateArray(10000);
         double[] expected =new double[3];
-        MaxMinAvg mma = new MaxMinAvg();
-        double[] result = mma.maxMinAvgSeq(input);
+        MaxMinSum mma = new MaxMinSum();
+        double[] result = mma.maxMinSumSeq(input);
         expected[0]=Collections.max(input);
         expected[1]=Collections.min(input);
         expected[2]=input.stream().mapToDouble(a->a).sum();
@@ -32,7 +32,7 @@ public class MaxMinAvgTest extends TestCase{
     public void testTaskParCorrectness() throws InterruptedException {
         ArrayList<Double> input = generateArray(10000);
         double[] expected =new double[3];
-        MaxMinAvg mma = new MaxMinAvg();
+        MaxMinSum mma = new MaxMinSum();
         double[] result = mma.maxMinSumTaskParallelThread(input);
         expected[0]= Collections.max(input);
         expected[1]=Collections.min(input);
@@ -45,8 +45,8 @@ public class MaxMinAvgTest extends TestCase{
     public void testDataParCorrectness() throws InterruptedException {
         ArrayList<Double> input = generateArray(13);
         double[] expected =new double[3];
-        MaxMinAvg mma = new MaxMinAvg();
-        double[] result = mma.maxMinAvgDataParallelThread(input,3);
+        MaxMinSum mma = new MaxMinSum();
+        double[] result = mma.maxMinSumDataParallelThread(input,3);
         expected[0]= Collections.max(input);
         expected[1]=Collections.min(input);
         expected[2]=input.stream().mapToDouble(a->a).sum();
@@ -58,8 +58,8 @@ public class MaxMinAvgTest extends TestCase{
     public void testTaskDataParCorrectness() throws InterruptedException {
         ArrayList<Double> input = generateArray(10000);
         double[] expected =new double[3];
-        MaxMinAvg mma = new MaxMinAvg();
-        double[] result = mma.maxMinAvgDataTaskParallelThread(input);
+        MaxMinSum mma = new MaxMinSum();
+        double[] result = mma.maxMinSumDataTaskParallelThread(input);
         expected[0]= Collections.max(input);
         expected[1]=Collections.min(input);
         expected[2]=input.stream().mapToDouble(a->a).sum();
@@ -69,7 +69,7 @@ public class MaxMinAvgTest extends TestCase{
     }
 
     public void testTaskParSpeedup() throws InterruptedException {
-        MaxMinAvg mma = new MaxMinAvg();
+        MaxMinSum mma = new MaxMinSum();
         double[] resultSeq =new double[3];
         double[] resultPar =new double[3];
         ArrayList<Double> input = null;
@@ -77,11 +77,11 @@ public class MaxMinAvgTest extends TestCase{
             input = generateArray((int) Math.pow(10, j));
 
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqEndTime = System.nanoTime();
             long parStartTime = System.nanoTime();
@@ -99,7 +99,7 @@ public class MaxMinAvgTest extends TestCase{
     }
 
     public void testDataParSpeedup() throws InterruptedException {
-        MaxMinAvg mma = new MaxMinAvg();
+        MaxMinSum mma = new MaxMinSum();
         double[] resultSeq =new double[3];
         double[] resultPar =new double[3];
         ArrayList<Double> input = null;
@@ -107,16 +107,16 @@ public class MaxMinAvgTest extends TestCase{
             input = generateArray((int) Math.pow(10, j));
 
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqEndTime = System.nanoTime();
             long parStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultPar = mma.maxMinAvgDataParallelThread(input,3);
+                resultPar = mma.maxMinSumDataParallelThread(input,3);
             }
             long parEndTime = System.nanoTime();
             double expected =input.stream().mapToDouble(a->a).average().getAsDouble();
@@ -129,26 +129,26 @@ public class MaxMinAvgTest extends TestCase{
         }
     }
     public void testDataParSpeedupMulti() throws InterruptedException {
-        MaxMinAvg mma = new MaxMinAvg();
+        MaxMinSum mma = new MaxMinSum();
         double[] resultSeq = new double[3];
         double[] resultPar = new double[3];
         ArrayList<Double> input = null;
         for (int i = 1; i <= 8; i++) {
             System.out.println("Thread class Test with Threadnum " + i);
-            for (int j = 1; j < 7; j++) {
+            for (int j = 1; j < 8; j++) {
                 input = generateArray((int) Math.pow(10, j));
 
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = mma.maxMinAvgSeq(input);
+                    resultSeq = mma.maxMinSumSeq(input);
                 }
                 long seqStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = mma.maxMinAvgSeq(input);
+                    resultSeq = mma.maxMinSumSeq(input);
                 }
                 long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultPar = mma.maxMinAvgDataParallelThread(input, i);
+                    resultPar = mma.maxMinSumDataParallelThread(input, i);
                 }
                 long parEndTime = System.nanoTime();
                 double expected = input.stream().mapToDouble(a -> a).average().getAsDouble();
@@ -162,7 +162,7 @@ public class MaxMinAvgTest extends TestCase{
         }
     }
     public void testTaskDataParSpeedup() throws InterruptedException {
-        MaxMinAvg mma = new MaxMinAvg();
+        MaxMinSum mma = new MaxMinSum();
         double[] resultSeq =new double[3];
         double[] resultPar =new double[3];
         ArrayList<Double> input = null;
@@ -170,16 +170,16 @@ public class MaxMinAvgTest extends TestCase{
             input = generateArray((int) Math.pow(10, j));
 
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultSeq = mma.maxMinAvgSeq(input);
+                resultSeq = mma.maxMinSumSeq(input);
             }
             long seqEndTime = System.nanoTime();
             long parStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultPar = mma.maxMinAvgDataTaskParallelThread(input);
+                resultPar = mma.maxMinSumDataTaskParallelThread(input);
             }
             long parEndTime = System.nanoTime();
             for(int i =0; i<3; i++){

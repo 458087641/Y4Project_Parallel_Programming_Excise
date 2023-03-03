@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static edu.rice.pcdp.PCDP.async;
-import static edu.rice.pcdp.PCDP.finish;
 
+import static exercises.Helper.getChunkEndExclusive;
+import static exercises.Helper.getChunkStartInclusive;
 public class EnergyFee {
     /**
      * for Gas and electricity fee, 0-50 part pay 1 per unit
@@ -17,11 +17,9 @@ public class EnergyFee {
         Map<String, Double> resultMap=new HashMap<String, Double>();
         for (EnergyAccount account : accountList) {
             double elecUsed = account.getElec();
-            double gasUsed = account.getGas();
-            double gasFee = feeCalculatorSeq(gasUsed);
             double elecFee = feeCalculatorSeq(elecUsed);
             String accountNum = account.getAccountNum();
-            resultMap.put(accountNum,gasFee+elecFee);
+            resultMap.put(accountNum,elecFee);
         }
         return resultMap;
     }
@@ -53,89 +51,85 @@ public class EnergyFee {
         }
         public void run(){
             for(int i = startIndex; i<endIndex; i++) {
-
-                resultMap = calFeeSeq(accountList);
+                resultMap.put(accountList.get(i).getAccountNum(),feeCalculatorSeq(accountList.get(i).getElec()));
             }
         }
     }
 
-    public static class calFeeTaskParallelThread extends Thread{
+    public static class calFeeTaskParallelThreadClass extends Thread{
         private final ArrayList<EnergyAccount> accountList;
         private Map<String, Double> resultMap=new HashMap<String, Double>();
         private final int level;
 
-        public calFeeTaskParallelThread(ArrayList<EnergyAccount> accountList, int level) {
+        public calFeeTaskParallelThreadClass(ArrayList<EnergyAccount> accountList, int level) {
             this.accountList = accountList;
             this.level = level;
         }
         public void run() {
             for (EnergyAccount account : accountList) {
                 double elecUsed = account.getElec();
-                double gasUsed = account.getGas();
                 String accountNum = account.getAccountNum();
                 if (level == 1) {
                     double fee =0;
-                    if(elecUsed+gasUsed>=50){
+                    if(elecUsed>=50){
                         fee = 50;
                     }else{
-                        fee= elecUsed+gasUsed;
+                        fee= elecUsed;
                     }
                     resultMap.put(accountNum,fee);
                 }
                 if(level==2){
                     double fee =0;
-                    if(50<elecUsed+gasUsed &&elecUsed+gasUsed<=100 ){
+                    if(elecUsed>100 ){
                         fee = 75;
-                    }else{
-                        fee= (elecUsed+gasUsed-50)*1.5;
+                    }
+                    else if(elecUsed>50){
+                        fee= (elecUsed-50)*1.5;
+                    }
+                    else{
+                        fee = 0;
                     }
                     resultMap.put(accountNum,fee);
                 }
                 if(level==3){
                     double fee =0;
-                    if(100<elecUsed+gasUsed ){
-                        fee = (elecUsed+gasUsed-100)*2;
+                    if(100<elecUsed){
+                        fee = (elecUsed-100)*2;
                     }
                     resultMap.put(accountNum,fee);
                 }
             }
         }
     }
-    public static Map<String,Double> calFeeTaskParallelAsyc(ArrayList<EnergyAccount> accountList){
+    public static Map<String, Double> calFeeTaskParallelThread (ArrayList<EnergyAccount> accountList) throws InterruptedException {
         Map<String, Double> resultMap=new HashMap<String, Double>();
-        for (EnergyAccount account : accountList) {
-            double elecUsed = account.getElec();
-            double gasUsed = account.getGas();
-            String accountNum=account.getAccountNum();
-            final double[] fee = {0};
-            finish(()-> {
-                async(() -> {
-                    double fee1 =0;
-                    if(elecUsed+gasUsed>=50){
-                        fee1 = 50;
-                    }else{
-                        fee1= elecUsed+gasUsed;
-                    }
-                    fee[0]+=fee1;
-                });
-                async(() ->{
-                    double fee2 =0;
-                    if(50<elecUsed+gasUsed &&elecUsed+gasUsed<=100 ){
-                        fee2 = 75;
-                    }else{
-                        fee2= (elecUsed+gasUsed-50)*1.5;
-                    }
-                    fee[0] +=fee2;
-                });
-                double fee3 =0;
-                if(100<elecUsed+gasUsed ){
-                    fee3 = (elecUsed+gasUsed-100)*2;
-                }
-                fee[0] +=fee3;
-            });
-            resultMap.put(accountNum,fee[0]);
+        calFeeTaskParallelThreadClass threadLevel1= new calFeeTaskParallelThreadClass(accountList,1);
+        calFeeTaskParallelThreadClass threadLevel2= new calFeeTaskParallelThreadClass(accountList,2);
+        calFeeTaskParallelThreadClass threadLevel3= new calFeeTaskParallelThreadClass(accountList,3);
+        threadLevel1.start();
+        threadLevel2.start();
+        threadLevel3.start();
+        threadLevel1.join();
+        threadLevel2.join();
+        threadLevel3.join();
+        for (EnergyAccount e :accountList){
+            double result = threadLevel1.resultMap.get(e.getAccountNum()) + threadLevel2.resultMap.get(e.getAccountNum()) + threadLevel3.resultMap.get(e.getAccountNum());
+            resultMap.put(e.getAccountNum(),result);
         }
         return resultMap;
     }
 
+    public static Map<String, Double> calFeeDataParallelThread (ArrayList<EnergyAccount> accountList,int threadNum) throws InterruptedException {
+        calFeeDataParallelThread[] threadArray = new calFeeDataParallelThread[threadNum];
+        Map<String, Double> resultMap=new HashMap<String, Double>();
+        for (int i =0; i<threadNum; i++){
+            threadArray[i]=new calFeeDataParallelThread(accountList,getChunkStartInclusive(i, threadNum,accountList.size()),getChunkEndExclusive(i, threadNum,accountList.size()));
+            threadArray[i].start();
+        }
+        for (calFeeDataParallelThread t : threadArray){
+            t.join();
+            resultMap.putAll(t.resultMap);
+        }
+        return resultMap;
+    }
 }

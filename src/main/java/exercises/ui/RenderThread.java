@@ -4,7 +4,7 @@ import java.awt.Color;
 
 import exercises.maths.Complex;
 import exercises.maths.Mandelbrot;
-
+import java.util.Random;
 public class RenderThread extends Thread {
 
 	private MandelbrotDemo mandelbrot;
@@ -29,35 +29,15 @@ public class RenderThread extends Thread {
             for (int j = startY; j <endY; j++) {
                 double x0 = j / mandelbrot.zoomX + mandelbrot.x1;
                 double y0 = i / mandelbrot.zoomY + mandelbrot.y1;
-                
+				Random rand = new Random(colorInt);
+				int r = rand.nextInt(255);
+				int g = rand.nextInt(255);
+				int b = rand.nextInt(255);
                 Complex z0 = new Complex(x0, y0);
-                Color color = new Color(168, 32, 32);
-				//color = Mandelbrot.greyMandelbrot(z0, mandelbrot.maxIteration);
-				if(colorInt==-1) {
-					color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
-				}
-				if(colorInt == 0){
-					color = Mandelbrot.redMandelbrot(z0, mandelbrot.maxIteration, color);
-				}
-				if(colorInt == 1){
-					color = new Color(37, 168, 32);
-
-					color = Mandelbrot.greenMandelbrot(z0, mandelbrot.maxIteration, color);
-				}
-				if(colorInt == 2){
-					color = new Color(12, 29, 93);
-					color = Mandelbrot.blueMandelbrot(z0, mandelbrot.maxIteration, color);
-				}
-				if(colorInt == 3){
-					color = Mandelbrot.blackAndWhiteMandelbrot(z0, mandelbrot.maxIteration);
-				}
-                if(mandelbrot.isLiveRendering) {
-					mandelbrot.renderImage.setRGB(j, i, color.getRGB());
-                } else {
-                	mandelbrot.imageArray[i * mandelbrot.width + j] = color.getRGB();
-                }
-            }
-            if(mandelbrot.isLiveRendering) {
+				//color = Mandelbrot.redMandelbrot(z0, mandelbrot.maxIteration, color);
+				int value = Mandelbrot.colorMandelbrotFormula(z0,mandelbrot.maxIteration);
+				Color color =  new Color(value*r/255, value*g/255, value*b/255);
+				mandelbrot.renderImage.setRGB(j, i, color.getRGB());
             	mandelbrot.repaint();
             }            
         }

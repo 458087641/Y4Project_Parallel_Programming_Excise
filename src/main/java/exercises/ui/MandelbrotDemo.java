@@ -1,7 +1,5 @@
 package exercises.ui;
 
-import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,9 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import java.text.DecimalFormat;
-import java.util.ArrayDeque;
 import java.util.Calendar;
-import java.util.Deque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,12 +32,10 @@ public class MandelbrotDemo extends JFrame {
 	protected double y2 = 1.0;
 	protected double zoomX;
 	protected double zoomY;
-	boolean optimise = false;
-	protected int maxIteration = 100;
+	protected int maxIteration = 255;
 	protected int width  = 1920;
 	protected int height = 1080;
 
-	protected boolean isLiveRendering = true;
 	
 	protected int[]imageArray = null;
 	protected BufferedImage renderImage = null;
@@ -86,8 +80,8 @@ public class MandelbrotDemo extends JFrame {
 			}
 		});
 
-		infoTextField = new JTextField("number of threads : " + threadsNum);
-		infoTextField.setColumns(26);
+		infoTextField = new JTextField("Number of threads : " + threadsNum);
+		infoTextField.setColumns(40);
 		infoTextField.setEditable(false);
 
 		JPanel interactionPanel = new JPanel();
@@ -113,53 +107,36 @@ public class MandelbrotDemo extends JFrame {
 		add("South", interactionPanel);
 	}
     private void computeMandelbrot() {
-    	isComputing = true;
-    	startButton.setEnabled(false);
-    	menu1.setEnabled(false);
-    	zoomX = width / (x2 - x1);
-    	zoomY = height / (y2 - y1);
+    	zoomX = width / (x2 - x1) ;
+    	zoomY = height / (y2 - y1) ;
     	renderImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     	repaint();
-    	
-    	SwingWorker<Object, Object> sw = new SwingWorker<Object, Object>() {
+    	SwingWorker<Object, Object> worker = new SwingWorker<>() {
 			@Override
 			protected Object doInBackground() throws Exception {
 				multithread();
 				return null;
 			}
-			@Override
-			protected void done() {
-				startButton.setEnabled(true);
-		    	menu1.setEnabled(true);
-				isComputing = false;
-			}
 		};
-    	sw.execute();
+    	worker.execute();
     }
     
     protected void multithread() {
     	long before = Calendar.getInstance().getTimeInMillis();
 		ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
+		int stepJ = (int) Math.floor(width / (double) threadsNum);
 
-		int stepI, stepJ;
-
-		if (optimise==false) {
-			stepJ = (int) Math.floor(width / (double) threadsNum);
-
-			for (int j = 0; j < threadsNum; j++) {
-				int startJ = stepJ * j;
-				int endJ = startJ + stepJ;
-
-				if (j == threadsNum - 1) {
-					endJ = width - 1;
-				}
-				if(threadsNum<=4){
-					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,j));
-				}
-				else {
-					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,-1));
-				}
+		for (int j = 0; j < threadsNum; j++) {
+			int startJ = stepJ * j;
+			int endJ = startJ + stepJ;
+			if (j == threadsNum - 1) {
+				endJ = width - 1;
 			}
+			executor.submit(new RenderThread(instance, 0, height, startJ, endJ,j));
+		}
+		/*
+		if (optimise==false) {
+			pass;
 		}
 		else {
 			if (threadsNum % 2 == 0) {
@@ -196,6 +173,8 @@ public class MandelbrotDemo extends JFrame {
 				}
 			}
 		}
+		*/
+
 		executor.shutdown();
 		try {
 			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -209,7 +188,7 @@ public class MandelbrotDemo extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				infoTextField.setText("Number of Threads : " + threadsNum + " processing time : " + df.format(time) + " s");
+				infoTextField.setText("Number of Threads : " + threadsNum + " Processing time : " + df.format(time) + " s");
 			}
 		});
 
@@ -241,7 +220,6 @@ public class MandelbrotDemo extends JFrame {
 
     	}
     }
-    
 
     public static void main(String[] args)  {
         SwingUtilities.invokeLater(new Runnable() {			
