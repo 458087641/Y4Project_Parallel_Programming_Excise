@@ -98,6 +98,7 @@ public class MorseCode {
         }
         @Override
         protected void compute() {
+            int size = this.input.length();
             this.result =englishToMorse(input.substring(startIndex,endIndex));
 
         }
@@ -117,6 +118,7 @@ public class MorseCode {
         String result = "";
         morseForkJoin[] threadsArray =new morseForkJoin[threadsnum];
         for(int i =0; i<threadsnum; i++){
+            int c = input.length();
             threadsArray[i]=new morseForkJoin(getChunkStartInclusive(i, threadsnum,input.length()),getChunkEndExclusive(i, threadsnum,input.length()),input);
         }
         for (int i=0; i<threadsnum-1; i++){

@@ -103,7 +103,7 @@ public class MaxMinSumTest extends TestCase{
         double[] resultSeq =new double[3];
         double[] resultPar =new double[3];
         ArrayList<Double> input = null;
-        for (int j=1; j<7;j++) {
+        for (int j=1; j<9;j++) {
             input = generateArray((int) Math.pow(10, j));
 
             for (int l = 0; l < 100; l++) {

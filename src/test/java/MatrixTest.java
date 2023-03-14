@@ -1,12 +1,8 @@
-package exercises;
+import exercises.Matrix;
+import junit.framework.TestCase;
 
-import java.util.ArrayList;
-
-import static exercises.Helper.getChunkEndExclusive;
-import static exercises.Helper.getChunkStartInclusive;
-
-public class Main {
-    public static void main(String[] arg)  {
+public class MatrixTest extends TestCase {
+    public void testMatrixSpeedUp(){
         for (int x = 1; x <= 8; x++) {
             System.out.println("thread number "+ x);
             System.out.println("   N       tseq       tpar   s(n)");
