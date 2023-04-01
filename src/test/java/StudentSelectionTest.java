@@ -135,6 +135,36 @@ public class StudentSelectionTest extends TestCase{
             }
         }
     }
+
+    public void testThreadScaleData() throws IOException, InterruptedException {
+        StudentSelection s =new StudentSelection();
+        String resultSeq =new String();
+        String resultPar =new String();
+        Student[] students = null;
+        for(int i =1; i<=8; i++){
+            System.out.println("Thread class Test with Threadnum " + i);
+                students = generateStudentData((int) i*100000);
+
+                for (int l = 0; l < 100; l++) {
+                    resultSeq = s.mostCommonFirstNameSeq(students);
+                }
+                long seqStartTime = System.nanoTime();
+                for (int l = 0; l < 100; l++) {
+                    resultSeq = s.mostCommonFirstNameSeq(students);
+                }
+                long seqEndTime = System.nanoTime();
+                long parStartTime = System.nanoTime();
+                for (int l = 0; l < 100; l++) {
+                    resultPar = s.studentSelectionThread(students, i);
+                }
+                long parEndTime = System.nanoTime();
+                assertEquals(resultSeq, resultPar);
+                long seqTime = (seqEndTime - seqStartTime);
+                long parTime = (parEndTime - parStartTime);
+                System.out.println("data amount " + i*10000 + " words " + "speedup " + (double) seqTime / (double) parTime + " "+parTime/1000000+ "ms" +" "+seqTime/1000000+ "ms");
+            }
+        }
+
     public void testForkSpeedUpData() throws IOException, InterruptedException {
         StudentSelection s =new StudentSelection();
         String resultSeq =new String();

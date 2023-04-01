@@ -79,8 +79,6 @@ public class ScrabbleTest extends TestCase {
                     resultPar=s.scrabbleThread(input,i);
                 }
                 long parEndTime = System.nanoTime();
-
-
                 assertEquals(resultSeq,resultPar);
                 long seqTime = (seqEndTime - seqStartTime);
                 long parTime = (parEndTime - parStartTime);
@@ -89,16 +87,13 @@ public class ScrabbleTest extends TestCase {
         }
 
     }
-
-    public void testForkJoinSpeedUpData() throws IOException, InterruptedException {
+    public void testThreadScaleData() throws IOException, InterruptedException {
         Scrabble s =new Scrabble();
         int resultSeq =0;
         int resultPar =0;
-        for(int i =1; i<=8; i++){
-            ArrayList<String> input =new ArrayList<>();
-            System.out.println("ForkJoin class Test with Threadnum " + i);
-            for (int j=1; j<7;j++){
-                for(int k=0;k<Math.pow(10,j);k++){
+            for (int j=1; j<9;j++){
+                ArrayList<String> input =new ArrayList<>();
+                for(int k=0;k<j*10000;k++){
                     input.add(generateString());
                 }
                 for(int l=0; l<100;l++) {
@@ -111,13 +106,45 @@ public class ScrabbleTest extends TestCase {
                 long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
                 for(int l=0; l<100;l++) {
-                    resultPar=s.scrabbleForkJoinMultiple(input,i);
+                    resultPar=s.scrabbleThread(input,j);
                 }
                 long parEndTime = System.nanoTime();
                 assertEquals(resultSeq,resultPar);
                 long seqTime = (seqEndTime - seqStartTime);
                 long parTime = (parEndTime - parStartTime);
-                System.out.println("data amount "+ Math.pow(10,j) +" words "+"speedup "+ (double)seqTime/(double)parTime +" ");
+                System.out.println("data amount "+ j*10000 +" words "+"speedup "+ (double)seqTime/(double)parTime +" "+parTime/1000000+ "ms");
+            }
+        }
+
+
+    public void testForkJoinSpeedUpData() throws IOException, InterruptedException {
+        Scrabble s =new Scrabble();
+        int resultSeq =0;
+        int resultPar =0;
+        for(int i =1; i<=8; i++) {
+            ArrayList<String> input = new ArrayList<>();
+            System.out.println("ForkJoin class Test with Threadnum " + i);
+            for (int j = 1; j < 7; j++) {
+                for (int k = 0; k < Math.pow(10, j); k++) {
+                    input.add(generateString());
+                }
+                for (int l = 0; l < 100; l++) {
+                    resultSeq = s.calValSeq(input);
+                }
+                long seqStartTime = System.nanoTime();
+                for (int l = 0; l < 100; l++) {
+                    resultSeq = s.calValSeq(input);
+                }
+                long seqEndTime = System.nanoTime();
+                long parStartTime = System.nanoTime();
+                for (int l = 0; l < 100; l++) {
+                    resultPar = s.scrabbleForkJoinMultiple(input, i);
+                }
+                long parEndTime = System.nanoTime();
+                assertEquals(resultSeq, resultPar);
+                long seqTime = (seqEndTime - seqStartTime);
+                long parTime = (parEndTime - parStartTime);
+                System.out.println("data amount " + Math.pow(10, j) + " words " + "speedup " + (double) seqTime / (double) parTime + " ");
             }
         }
     }

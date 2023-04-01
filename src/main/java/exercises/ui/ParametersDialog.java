@@ -20,13 +20,13 @@ public class ParametersDialog extends JDialog {
 	private JButton okButton;
 	private JButton cancelButton;
 	
-	private MandelbrotDemo mandelbrot;
+	private Mandelbrot mandelbrot;
 	
 	
 	public ParametersDialog(JFrame parent) {
 		super(parent, "Parameters", true);
 		
-		mandelbrot = (MandelbrotDemo) parent;
+		mandelbrot = (Mandelbrot) parent;
 		initComponents();
 		
 		setMinimumSize(new Dimension(650, 550));

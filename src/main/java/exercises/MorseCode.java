@@ -63,9 +63,6 @@ public class MorseCode {
 
     public static String englishToMorse(String text){
         StringBuffer buffer = new StringBuffer();
-
-        //String[] splitedText= text.split(" ");
-        //for(String i :splitedText){
             for(char c : text.toCharArray()){
                 if(morseDic.get(String.valueOf(c).toUpperCase())==null){
                     System.out.println(c);
@@ -73,10 +70,7 @@ public class MorseCode {
                 buffer.append(morseDic.get(String.valueOf(c).toUpperCase()));
                 buffer.append(" ");
             }
-            //if(splitedText[splitedText.length-1] !=i){
-                //buffer.append("/ ");
-            //}
-        //}
+
         buffer.deleteCharAt(buffer.length() -1);
         return buffer.toString();
     }

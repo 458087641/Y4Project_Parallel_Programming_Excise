@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import java.text.DecimalFormat;
-import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,7 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-public class MandelbrotDemo extends JFrame {
+public class Mandelbrot extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	protected double x1 = -2.0;
@@ -48,7 +47,7 @@ public class MandelbrotDemo extends JFrame {
 	private JMenu menu1;
 
 	
-	private MandelbrotDemo instance;
+	private Mandelbrot instance;
 	private boolean isComputing = false;
 	protected int coreNum = Runtime.getRuntime().availableProcessors();
 	protected int threadsNum = Runtime.getRuntime().availableProcessors();
@@ -56,9 +55,8 @@ public class MandelbrotDemo extends JFrame {
 
 	
 	
-	public MandelbrotDemo() {
-		super("Mandel");
-
+	public Mandelbrot() {
+		super("Mandelbrot");
 		instance = this;
 		initComponents();
 		setMinimumSize(new Dimension(1080, 720));
@@ -122,58 +120,18 @@ public class MandelbrotDemo extends JFrame {
     }
     
     protected void multithread() {
-    	long before = Calendar.getInstance().getTimeInMillis();
+		long before=System.nanoTime();
 		ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
-		int stepJ = (int) Math.floor(width / (double) threadsNum);
+		int step = (int) Math.floor(width / (double) threadsNum);
 
 		for (int j = 0; j < threadsNum; j++) {
-			int startJ = stepJ * j;
-			int endJ = startJ + stepJ;
+			int start = step * j;
+			int end = start + step;
 			if (j == threadsNum - 1) {
-				endJ = width - 1;
+				end = width - 1;
 			}
-			executor.submit(new RenderThread(instance, 0, height, startJ, endJ,j));
+			executor.submit(new RenderThread(instance, 0, height, start, end,j));
 		}
-		/*
-		if (optimise==false) {
-			pass;
-		}
-		else {
-			if (threadsNum % 2 == 0) {
-				stepI = (int) Math.floor(height / 2.0);
-				stepJ = (int) Math.floor(width / (double) (threadsNum / 2));
-
-				for (int i = 0; i < 2; i++) {
-					for (int j = 0; j < threadsNum / 2; j++) {
-						int startI = stepI * i;
-						int endI = startI + stepI;
-						int startJ = stepJ * j;
-						int endJ = startJ + stepJ;
-
-						if (j == threadsNum / 2 - 1) {
-							endJ = width - 1;
-						}
-						if (i == 1) {
-							endI = height - 1;
-						}
-						executor.submit(new RenderThread(instance, startI, endI, startJ, endJ,-1));
-					}
-				}
-			} else {
-				stepJ = (int) Math.floor(width / (double) threadsNum);
-
-				for (int j = 0; j < threadsNum; j++) {
-					int startJ = stepJ * j;
-					int endJ = startJ + stepJ;
-
-					if (j == threadsNum - 1) {
-						endJ = width - 1;
-					}
-					executor.submit(new RenderThread(instance, 0, height, startJ, endJ,-1));
-				}
-			}
-		}
-		*/
 
 		executor.shutdown();
 		try {
@@ -181,9 +139,10 @@ public class MandelbrotDemo extends JFrame {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		long after = Calendar.getInstance().getTimeInMillis();
 
-		final double time = (after - before) / 1000.0;
+
+		long after=System.nanoTime();
+		final double time = (after - before) / 1000000000.0;
 		final DecimalFormat df = new DecimalFormat("#.###");
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -225,7 +184,7 @@ public class MandelbrotDemo extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {			
 			@Override
 			public void run() {
-				new MandelbrotDemo();
+				new Mandelbrot();
 			}
 		});
     }

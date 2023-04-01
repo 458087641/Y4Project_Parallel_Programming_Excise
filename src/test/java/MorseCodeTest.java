@@ -80,7 +80,7 @@ public class MorseCodeTest extends TestCase {
         String resultSeq=translator.englishToMoerseSeq(content);
         long seqEndTime = System.nanoTime();
         long parStartTime = System.nanoTime();
-        String resultPar=translator.morseForkJoinMultiple(content,1);
+        String resultPar=translator.morseForkJoinMultiple(content,4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           );
         long parEndTime = System.nanoTime();
         long seqTime = (seqEndTime - seqStartTime);
         long parTime = (parEndTime - parStartTime);
@@ -168,6 +168,38 @@ public class MorseCodeTest extends TestCase {
             }
         }
     }
+
+    public void testThreadscaleData() throws IOException, InterruptedException {
+        MorseCode translator = new MorseCode();
+        String resultSeq =new String();
+        String resultPar =new String();
+        for(int i =1; i<=8; i++){
+            StringBuffer buffer = new StringBuffer();
+            System.out.println("Thread class Test with Threadnum " + i);
+                for(int k=0;k<10000*i;k++){
+                    buffer.append(generateString());
+                }
+                String content =buffer.toString();
+                for(int l=0; l<100;l++) {
+                    resultSeq = translator.englishToMoerseSeq(content);
+                }
+                long seqStartTime = System.nanoTime();
+                for(int l=0; l<100;l++) {
+                    resultSeq = translator.englishToMoerseSeq(content);
+                }
+                long seqEndTime = System.nanoTime();
+                long parStartTime = System.nanoTime();
+                for(int l=0; l<100;l++) {
+                    resultPar=translator.morseThread(content,i);
+                }
+                long parEndTime = System.nanoTime();
+                assertEquals(resultSeq,resultPar);
+                long seqTime = (seqEndTime - seqStartTime);
+                long parTime = (parEndTime - parStartTime);
+                System.out.println("data amount "+ 10000*i +" words "+"speedup "+ (double)seqTime/(double)parTime +" "+parTime/1000000+ "ms");
+            }
+        }
+
     public void testThreadSpeedUpData1() throws IOException, InterruptedException {
         MorseCode translator = new MorseCode();
         String resultSeq =new String();

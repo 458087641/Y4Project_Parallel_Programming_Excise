@@ -1,21 +1,11 @@
 package exercises;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import static exercises.Helper.getChunkEndExclusive;
 import static exercises.Helper.getChunkStartInclusive;
 public class Matrix
 {
-    private static Random rnd = new Random();
-
     private int rows, cols;
     private int[][] data;
-
-
     public Matrix(int rows, int cols)
     {
         this.rows = rows;
@@ -24,27 +14,6 @@ public class Matrix
     }
 
 
-
-    public static Matrix createRandomized(int rows, int cols)
-    {
-        Matrix m = new Matrix(rows, cols);
-
-        for (int i = 0; i < m.rows; i++)
-            for (int j = 0; j < m.cols; j++)
-                m.data[i][j] = rnd.nextInt(100);
-
-        return m;
-    }
-
-
-    public static int scalarProduct(Matrix a, int aRow, Matrix b, int bRow)
-    {
-        int scalar = 0;
-        for (int k = 0; k < b.getCols(); k++)
-            scalar += a.data[aRow][k] * b.data[bRow][k];
-
-        return scalar;
-    }
 
     public static Matrix multSerial(Matrix a, Matrix b)
     {
@@ -57,12 +26,12 @@ public class Matrix
         return c;
     }
 
-    public static class MatrixMultParallel4 extends Thread
+    public static class MatrixMultParallel extends Thread
     {
         private int iStart, iEnd;
         private Matrix a, r, c;
 
-        public MatrixMultParallel4(int iStart, int iEnd, Matrix a, Matrix r, Matrix c)
+        public MatrixMultParallel(int iStart, int iEnd, Matrix a, Matrix r, Matrix c)
         {
             this.iStart = iStart;
             this.iEnd = iEnd;
@@ -79,23 +48,29 @@ public class Matrix
                     c.getData()[i][j] = Matrix.scalarProduct(a, i, r, j);
         }
     }
-    public static Matrix multParallel4(Matrix a, Matrix b, int threadNum) throws InterruptedException {
+    public static int scalarProduct(Matrix a, int aRow, Matrix b, int bCol)
+    {
+        int scalar = 0;
+        for (int k = 0; k < b.getCols(); k++)
+            scalar += a.data[aRow][k] * b.data[k][bCol];
+
+        return scalar;
+    }
+    public static Matrix multParallel(Matrix a, Matrix b, int threadNum) throws InterruptedException {
 
         Matrix c = new Matrix(a.rows, b.cols);
-        MatrixMultParallel4[] tList= new MatrixMultParallel4[threadNum];
-        for (int x = 0; x < threadNum; x++)
+        MatrixMultParallel[] tList= new MatrixMultParallel[threadNum];
+        for (int i = 0; i < threadNum; i++)
         {
-            MatrixMultParallel4 th = new MatrixMultParallel4(getChunkStartInclusive(x, threadNum,a.data.length),getChunkEndExclusive(x, threadNum,a.data.length), a, b, c);
-            tList[x]=th;
+            MatrixMultParallel th = new MatrixMultParallel(getChunkStartInclusive(i, threadNum,a.data.length),getChunkEndExclusive(i, threadNum,a.data.length), a, b, c);
+            tList[i]=th;
             th.start();
         }
-        for (MatrixMultParallel4 i : tList){
+        for (MatrixMultParallel i : tList){
             i.join();
         }
         return c;
     }
-
-
 
     public int getRows()
     {

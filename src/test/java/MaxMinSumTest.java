@@ -135,22 +135,19 @@ public class MaxMinSumTest extends TestCase{
         ArrayList<Double> input = null;
         for (int i = 1; i <= 8; i++) {
             System.out.println("Thread class Test with Threadnum " + i);
-            for (int j = 1; j < 8; j++) {
+            for (int j = 1; j < 7; j++) {
                 input = generateArray((int) Math.pow(10, j));
-
-                for (int l = 0; l < 100; l++) {
-                    resultSeq = mma.maxMinSumSeq(input);
-                }
-                long seqStartTime = System.nanoTime();
-                for (int l = 0; l < 100; l++) {
-                    resultSeq = mma.maxMinSumSeq(input);
-                }
-                long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
-                for (int l = 0; l < 100; l++) {
+                for (int l = 0; l < 1500; l++) {
                     resultPar = mma.maxMinSumDataParallelThread(input, i);
                 }
                 long parEndTime = System.nanoTime();
+                long seqStartTime = System.nanoTime();
+                for (int l = 0; l < 1500; l++) {
+                    resultSeq = mma.maxMinSumSeq(input);
+                }
+                long seqEndTime = System.nanoTime();
+
                 double expected = input.stream().mapToDouble(a -> a).average().getAsDouble();
                 for (int k = 0; k < 3; k++) {
                     assertEquals((int) resultSeq[k], (int) resultPar[k]);
