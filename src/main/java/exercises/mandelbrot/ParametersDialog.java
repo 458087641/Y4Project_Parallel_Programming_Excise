@@ -1,4 +1,4 @@
-package exercises.ui;
+package exercises.mandelbrot;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -12,8 +12,8 @@ public class ParametersDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	
-	private JLabel sliderLabel;
-	private JSlider threadsNumSlider;
+	private JLabel threadLabel;
+	private JSpinner threadsNumbox;
 	private JLabel iterLabel;
 	private JSpinner iterBox;
 
@@ -27,24 +27,20 @@ public class ParametersDialog extends JDialog {
 		super(parent, "Parameters", true);
 		
 		mandelbrot = (Mandelbrot) parent;
-		initComponents();
-		
-		setMinimumSize(new Dimension(650, 550));
+		initialize();
+		setMinimumSize(new Dimension(500, 500));
 		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
 	
-	private void initComponents() {
+	private void initialize() {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		JPanel centerPanel = new JPanel(new GridBagLayout());
-		sliderLabel = new JLabel("number of threads :");
+		threadLabel = new JLabel("number of threads");
 
-		threadsNumSlider = new JSlider(1, 2 * mandelbrot.coreNum, mandelbrot.threadsNum);
-		threadsNumSlider.setMajorTickSpacing(mandelbrot.coreNum / 2 );
-		threadsNumSlider.setMinorTickSpacing(1);
-		threadsNumSlider.setPaintTicks(true);
-		threadsNumSlider.setPaintLabels(true);
+		threadsNumbox=new JSpinner(new SpinnerNumberModel(1, 1, mandelbrot.coreNum, 1));
+
 
 		iterLabel = new JLabel("Max Iterations");
 		iterBox = new JSpinner(new SpinnerNumberModel(1000, 1, 10000, 1));
@@ -54,8 +50,8 @@ public class ParametersDialog extends JDialog {
 		GridBagConstraints c3 = new GridBagConstraints();
 		GridBagConstraints c4 = new GridBagConstraints();
 
-		centerPanel.add(sliderLabel, c1);
-		centerPanel.add(threadsNumSlider, c2);
+		centerPanel.add(threadLabel, c1);
+		centerPanel.add(threadsNumbox, c2);
 		centerPanel.add(iterLabel,c3);
 		centerPanel.add(iterBox,c4);
 
@@ -64,7 +60,7 @@ public class ParametersDialog extends JDialog {
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				mandelbrot.setThreadsNum(threadsNumSlider.getValue());
+				mandelbrot.setThreadsNum((Integer) threadsNumbox.getValue());
 				mandelbrot.setMaxIteration((Integer) iterBox.getValue());
 				dispose();
 			}

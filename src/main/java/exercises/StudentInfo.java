@@ -1,6 +1,6 @@
 package exercises;
 
-public class Student {
+public class StudentInfo {
         // First name of the student.
         private final String firstName;
         //Surname of the student.
@@ -12,7 +12,7 @@ public class Student {
 
 
 
-        public Student(String firstName, String lastName, double age, int grade) {
+        public StudentInfo(String firstName, String lastName, double age, int grade) {
                 this.firstName = firstName;
                 this.lastName = lastName;
                 this.age = age;

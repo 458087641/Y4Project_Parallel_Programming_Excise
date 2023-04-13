@@ -1,8 +1,6 @@
-package exercises.ui;
+package exercises.mandelbrot;
 
 import java.awt.Color;
-
-import exercises.maths.Complex;
 
 import java.util.Random;
 public class RenderThread extends Thread {
@@ -27,8 +25,8 @@ public class RenderThread extends Thread {
 	public void run() {
 		for (int i = startY; i < endY; i++) {
             for (int j = startX; j <endX; j++) {
-                double x = j / mandelbrot.zoomX + mandelbrot.x1;
-                double y = i / mandelbrot.zoomY + mandelbrot.y1;
+                double x = j / mandelbrot.scaleX + mandelbrot.x1;
+                double y = i / mandelbrot.scaleY + mandelbrot.y1;
 
 				Random rand = new Random(colorInt);
 				int r = rand.nextInt(255);
@@ -36,7 +34,7 @@ public class RenderThread extends Thread {
 				int b = rand.nextInt(255);
                 Complex z = new Complex(x, y);
 				//color = Mandelbrot.redMandelbrot(z0, mandelbrot.maxIteration, color);
-				int value = colorMandelbrot(z,mandelbrot.maxIteration);
+				int value = colorValue(z,mandelbrot.maxIteration);
 				Color color =  new Color(value*r, value*g, value*b);
 				mandelbrot.renderImage.setRGB(j, i, color.getRGB());
             	mandelbrot.repaint();
@@ -52,7 +50,7 @@ public class RenderThread extends Thread {
 		return max;
 	}
 
-	public static int colorMandelbrot(Complex z0, int maxIter) {
+	public static int colorValue(Complex z0, int maxIter) {
 		if(mandelbrot(z0, maxIter) == maxIter) {
 			return 1;
 		}

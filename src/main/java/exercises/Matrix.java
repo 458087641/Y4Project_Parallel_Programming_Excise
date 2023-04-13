@@ -13,39 +13,36 @@ public class Matrix
         this.data = new int[rows][cols];
     }
 
-
-
-    public static Matrix multSerial(Matrix a, Matrix b)
+    public static Matrix matrixMultiSeq(Matrix a, Matrix b)
     {
         Matrix c = new Matrix(a.rows, b.cols);
         for (int i = 0; i < c.rows; i++)
             for (int j = 0; j < c.cols; j++)
                 for (int k = 0; k < b.rows; k++)
                     c.data[i][j] += a.data[i][k] * b.data[k][j];
-
         return c;
     }
 
-    public static class MatrixMultParallel extends Thread
+    public static class MatrixMultiParallelThreadClass extends Thread
     {
-        private int iStart, iEnd;
-        private Matrix a, r, c;
+        private int startIndex, endIndex;
+        private Matrix a, b, c;
 
-        public MatrixMultParallel(int iStart, int iEnd, Matrix a, Matrix r, Matrix c)
+        public MatrixMultiParallelThreadClass(int startIndex, int endIndex, Matrix a, Matrix b, Matrix c)
         {
-            this.iStart = iStart;
-            this.iEnd = iEnd;
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
             this.a = a;
-            this.r = r;
+            this.b = b;
             this.c = c;
         }
 
         @Override
         public void run()
         {
-            for (int i = iStart; i < iEnd; i++)
+            for (int i = startIndex; i < endIndex; i++)
                 for (int j = 0; j < c.getCols(); j++)
-                    c.getData()[i][j] = Matrix.scalarProduct(a, i, r, j);
+                    c.getData()[i][j] = Matrix.scalarProduct(a, i, b, j);
         }
     }
     public static int scalarProduct(Matrix a, int aRow, Matrix b, int bCol)
@@ -56,17 +53,17 @@ public class Matrix
 
         return scalar;
     }
-    public static Matrix multParallel(Matrix a, Matrix b, int threadNum) throws InterruptedException {
+    public static Matrix matrixMultiParallel(Matrix a, Matrix b, int threadNum) throws InterruptedException {
 
         Matrix c = new Matrix(a.rows, b.cols);
-        MatrixMultParallel[] tList= new MatrixMultParallel[threadNum];
+        MatrixMultiParallelThreadClass[] tList= new MatrixMultiParallelThreadClass[threadNum];
         for (int i = 0; i < threadNum; i++)
         {
-            MatrixMultParallel th = new MatrixMultParallel(getChunkStartInclusive(i, threadNum,a.data.length),getChunkEndExclusive(i, threadNum,a.data.length), a, b, c);
+            MatrixMultiParallelThreadClass th = new MatrixMultiParallelThreadClass(getChunkStartInclusive(i, threadNum,a.data.length),getChunkEndExclusive(i, threadNum,a.data.length), a, b, c);
             tList[i]=th;
             th.start();
         }
-        for (MatrixMultParallel i : tList){
+        for (MatrixMultiParallelThreadClass i : tList){
             i.join();
         }
         return c;

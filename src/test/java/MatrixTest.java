@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import java.util.Random;
 
 public class MatrixTest extends TestCase {
-    public static Matrix createRandomized(int rows, int cols)
+    public static Matrix createRandomMatrix(int rows, int cols)
     {
         Matrix m = new Matrix(rows, cols);
         Random rand = new Random();
@@ -18,13 +18,13 @@ public class MatrixTest extends TestCase {
             System.out.println("thread number "+ x);
             System.out.println("   N       tseq       tpar   s(n)");
             for (int N = 32; N <= 1024; N *= 2) {
-                Matrix a = createRandomized(N, N);
-                Matrix b = createRandomized(N, N);
+                Matrix a = createRandomMatrix(N, N);
+                Matrix b = createRandomMatrix(N, N);
 
                 long startPar = System.nanoTime();
                 try {
                     for (int i =0; i<20;i++) {
-                        Matrix c = Matrix.multParallel(a, b, x);
+                        Matrix cPar = Matrix.matrixMultiParallel(a, b, x);
                     }
                 }catch (Exception e){}
 
@@ -32,7 +32,7 @@ public class MatrixTest extends TestCase {
 
                 long timeStart = System.nanoTime();
                 for (int i =0; i<20;i++) {
-                    Matrix cSerial = Matrix.multSerial(a, b);
+                    Matrix cSeq = Matrix.matrixMultiSeq(a, b);
                 }
                 long endTime = System.nanoTime();
                 double timeSerial = endTime - timeStart;
@@ -46,13 +46,13 @@ public class MatrixTest extends TestCase {
         for (int x = 1; x <= 8; x++) {
             System.out.println("thread number "+ x);
                 int N = 128*x;
-                Matrix a = createRandomized(N, N);
-                Matrix b = createRandomized(N, N);
+                Matrix a = createRandomMatrix(N, N);
+                Matrix b = createRandomMatrix(N, N);
 
                 long startPar = System.nanoTime();
                 try {
                     for (int i =0; i<1;i++) {
-                        Matrix c = Matrix.multParallel(a, b, x);
+                        Matrix cPar = Matrix.matrixMultiParallel(a, b, x);
                     }
                 }catch (Exception e){}
 
@@ -60,7 +60,7 @@ public class MatrixTest extends TestCase {
 
                 long timeStart = System.nanoTime();
                 for (int i =0; i<1;i++) {
-                    Matrix cSerial = Matrix.multSerial(a, b);
+                    Matrix cSeq = Matrix.matrixMultiSeq(a, b);
                 }
                 long endTime = System.nanoTime();
                 double timeSerial = endTime - timeStart;

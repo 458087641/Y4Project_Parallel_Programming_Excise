@@ -1,21 +1,18 @@
-import exercises.MorseCode;
-import exercises.Student;
+import exercises.StudentInfo;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Random;
 
 import exercises.StudentSelection;
 import junit.framework.TestCase;
 public class StudentSelectionTest extends TestCase{
-    private Student[] generateStudentData(int size) {
+    private StudentInfo[] generateStudentData(int size) {
         String[] firstNames = {"Sue", "Ming", "John", "Percy", "Shams", "Max","Mahito"};
         String[] lastNames = {"Honda", "Zhang", "Smith", "Mask", "Goh", "Gates","Wang"};
 
 
 
-        Student[] students = new Student[size];
+        StudentInfo[] studentInfos = new StudentInfo[size];
         Random r = new Random(123);
 
         for (int s = 0; s < size; s++) {
@@ -23,48 +20,48 @@ public class StudentSelectionTest extends TestCase{
             final String lastName = lastNames[r.nextInt(lastNames.length)];
             final double age = r.nextDouble() * 100.0;
             final int grade = 1 + r.nextInt(100);
-            students[s] = new Student(firstName, lastName, age, grade);
+            studentInfos[s] = new StudentInfo(firstName, lastName, age, grade);
         }
 
-        return students;
+        return studentInfos;
     }
 
     public void testmostCommonFirstNameSeqCorrectness() {
         String[] firstNames = {"Sue", "Ming", "John", "Percy", "Shams", "Max","Mahito"};
         String[] lastNames = {"Honda", "Zhang", "Smith", "Mask", "Goh", "Gates","Wang"};
-        Student[] students = new Student[8];
+        StudentInfo[] studentInfos = new StudentInfo[8];
         for (int i=0; i<firstNames.length;i++){
-            students[i]=new Student(firstNames[i],lastNames[i],20,100);
+            studentInfos[i]=new StudentInfo(firstNames[i],lastNames[i],20,100);
         }
-        students[7]=new Student("Ming","Wang",20,100);
+        studentInfos[7]=new StudentInfo("Ming","Wang",20,100);
         StudentSelection s =new StudentSelection();
-        String result = s.mostCommonFirstNameSeq(students);
+        String result = s.mostCommonFirstNameSeq(studentInfos);
         assertEquals("Ming",result);
     }
 
     public void testMostCommonFirstNameOfStudentsParallelStreamCorrectness() {
         String[] firstNames = {"Sue", "Ming", "John", "Percy", "Shams", "Max","Mahito"};
         String[] lastNames = {"Honda", "Zhang", "Smith", "Mask", "Goh", "Gates","Wang"};
-        Student[] students = new Student[8];
+        StudentInfo[] studentInfos = new StudentInfo[8];
         for (int i=0; i<firstNames.length;i++){
-            students[i]=new Student(firstNames[i],lastNames[i],20,100);
+            studentInfos[i]=new StudentInfo(firstNames[i],lastNames[i],20,100);
         }
-        students[7]=new Student("Ming","Wang",20,100);
+        studentInfos[7]=new StudentInfo("Ming","Wang",20,100);
         StudentSelection s =new StudentSelection();
-        String result = s.mostCommonFirstNameOfStudentsParallelStream(students);
+        String result = s.mostCommonFirstNameOfStudentsParallelStream(studentInfos);
         assertEquals("Ming",result);
     }
     public void testMostCommonFirstNameForkMultiple() {
         String[] firstNames = {"Sue", "Ming", "John", "Percy", "Shams", "Max","Mahito"};
         String[] lastNames = {"Honda", "Zhang", "Smith", "Mask", "Goh", "Gates","Wang"};
-        Student[] students = new Student[8];
+        StudentInfo[] studentInfos = new StudentInfo[8];
         for (int i=0; i<firstNames.length;i++){
-            students[i]=new Student(firstNames[i],lastNames[i],20,100);
+            studentInfos[i]=new StudentInfo(firstNames[i],lastNames[i],20,100);
         }
-        students[7]=new Student("Ming","Wang",20,100);
+        studentInfos[7]=new StudentInfo("Ming","Wang",20,100);
         StudentSelection s =new StudentSelection();
         for(int i =1; i<8;i++) {
-            String result = s.mostCommonFirstNameForkMultiple(students, i);
+            String result = s.mostCommonFirstNameForkMultiple(studentInfos, i);
             assertEquals("Ming", result);
         }
     }
@@ -72,35 +69,35 @@ public class StudentSelectionTest extends TestCase{
     public void testStudentSelectionThreadCorrectness() throws InterruptedException {
         String[] firstNames = {"Sue", "Ming", "John", "Percy", "Shams", "Max","Mahito"};
         String[] lastNames = {"Honda", "Zhang", "Smith", "Mask", "Goh", "Gates","Wang"};
-        Student[] students = new Student[8];
+        StudentInfo[] studentInfos = new StudentInfo[8];
         StudentSelection s =new StudentSelection();
         for (int i=0; i<firstNames.length;i++){
-            students[i]=new Student(firstNames[i],lastNames[i],20,100);
+            studentInfos[i]=new StudentInfo(firstNames[i],lastNames[i],20,100);
         }
-        students[7]=new Student("Ming","Wang",20,100);
+        studentInfos[7]=new StudentInfo("Ming","Wang",20,100);
 
         for(int i =1; i<8;i++) {
-            String result = s.studentSelectionThread(students, i);
+            String result = s.studentSelectionThread(studentInfos, i);
             assertEquals("Ming", result);
         }
     }
 
     public void testSeqParThreadEqual() throws IOException, InterruptedException {
-        Student[] students =generateStudentData(100000);
+        StudentInfo[] studentInfos =generateStudentData(100000);
         StudentSelection s =new StudentSelection();
-        String resultSeq = s.mostCommonFirstNameSeq(students);
+        String resultSeq = s.mostCommonFirstNameSeq(studentInfos);
         for(int i =1; i<8;i++) {
-            String resultPar = s.studentSelectionThread(students, i);
+            String resultPar = s.studentSelectionThread(studentInfos, i);
             assertEquals(resultSeq, resultPar);
         }
 
     }
     public void testSeqParForkEqual() throws IOException, InterruptedException {
-        Student[] students =generateStudentData(100000);
+        StudentInfo[] studentInfos =generateStudentData(100000);
         StudentSelection s =new StudentSelection();
-        String resultSeq = s.mostCommonFirstNameSeq(students);
+        String resultSeq = s.mostCommonFirstNameSeq(studentInfos);
         for(int i =1; i<8;i++) {
-            String resultPar = s.mostCommonFirstNameForkMultiple(students, i);
+            String resultPar = s.mostCommonFirstNameForkMultiple(studentInfos, i);
             assertEquals(resultSeq, resultPar);
         }
 
@@ -109,23 +106,23 @@ public class StudentSelectionTest extends TestCase{
         StudentSelection s =new StudentSelection();
         String resultSeq =new String();
         String resultPar =new String();
-        Student[] students = null;
+        StudentInfo[] studentInfos = null;
         for(int i =1; i<=8; i++){
             System.out.println("Thread class Test with Threadnum " + i);
             for (int j=1; j<7;j++) {
-                students = generateStudentData((int) Math.pow(10, j));
+                studentInfos = generateStudentData((int) Math.pow(10, j));
 
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultPar = s.studentSelectionThread(students, i);
+                    resultPar = s.studentSelectionThread(studentInfos, i);
                 }
                 long parEndTime = System.nanoTime();
                 assertEquals(resultSeq, resultPar);
@@ -140,22 +137,22 @@ public class StudentSelectionTest extends TestCase{
         StudentSelection s =new StudentSelection();
         String resultSeq =new String();
         String resultPar =new String();
-        Student[] students = null;
+        StudentInfo[] studentInfos = null;
         for(int i =1; i<=8; i++){
             System.out.println("Thread class Test with Threadnum " + i);
-                students = generateStudentData((int) i*100000);
+                studentInfos = generateStudentData((int) i*100000);
 
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultPar = s.studentSelectionThread(students, i);
+                    resultPar = s.studentSelectionThread(studentInfos, i);
                 }
                 long parEndTime = System.nanoTime();
                 assertEquals(resultSeq, resultPar);
@@ -169,23 +166,23 @@ public class StudentSelectionTest extends TestCase{
         StudentSelection s =new StudentSelection();
         String resultSeq =new String();
         String resultPar =new String();
-        Student[] students = null;
+        StudentInfo[] studentInfos = null;
         for(int i =1; i<=8; i++){
             System.out.println("Thread class Test with Threadnum " + i);
             for (int j=1; j<7;j++) {
-                students = generateStudentData((int) Math.pow(10, j));
+                studentInfos = generateStudentData((int) Math.pow(10, j));
 
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultSeq = s.mostCommonFirstNameSeq(students);
+                    resultSeq = s.mostCommonFirstNameSeq(studentInfos);
                 }
                 long seqEndTime = System.nanoTime();
                 long parStartTime = System.nanoTime();
                 for (int l = 0; l < 100; l++) {
-                    resultPar = s.mostCommonFirstNameForkMultiple(students, i);
+                    resultPar = s.mostCommonFirstNameForkMultiple(studentInfos, i);
                 }
                 long parEndTime = System.nanoTime();
                 assertEquals(resultSeq, resultPar);
@@ -200,21 +197,21 @@ public class StudentSelectionTest extends TestCase{
         StudentSelection s =new StudentSelection();
         String resultSeq =new String();
         String resultPar =new String();
-        Student[] students = null;
+        StudentInfo[] studentInfos = null;
         for (int j=1; j<7;j++) {
-            students = generateStudentData((int) Math.pow(10, j));
+            studentInfos = generateStudentData((int) Math.pow(10, j));
 
             for (int l = 0; l < 100; l++) {
-                resultSeq = s.mostCommonFirstNameSeq(students);
+                resultSeq = s.mostCommonFirstNameSeq(studentInfos);
             }
             long seqStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultSeq = s.mostCommonFirstNameSeq(students);
+                resultSeq = s.mostCommonFirstNameSeq(studentInfos);
             }
             long seqEndTime = System.nanoTime();
             long parStartTime = System.nanoTime();
             for (int l = 0; l < 100; l++) {
-                resultPar = s.mostCommonFirstNameOfStudentsParallelStream(students);
+                resultPar = s.mostCommonFirstNameOfStudentsParallelStream(studentInfos);
             }
             long parEndTime = System.nanoTime();
             assertEquals(resultSeq, resultPar);
